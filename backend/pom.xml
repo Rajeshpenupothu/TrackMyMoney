@@ -83,6 +83,13 @@
             <scope>runtime</scope>
         </dependency>
 
+        <!-- ✅ REQUIRED: Spring Boot Test (FIXES RAILWAY BUILD) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -94,7 +101,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
 
-            <!-- Skip tests during build (IMPORTANT for Railway) -->
+            <!-- Skip tests execution (still compile them) -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
