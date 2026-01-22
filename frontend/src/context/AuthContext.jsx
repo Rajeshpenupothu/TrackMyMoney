@@ -5,7 +5,7 @@ const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(
-    JSON.parse(localStorage.getItem("user")) || null
+    JSON.parse(sessionStorage.getItem("user")) || null
   );
 
   const login = async (email, password) => {
@@ -17,14 +17,14 @@ export function AuthProvider({ children }) {
 
       const { token, name, email: userEmail } = res.data;
 
-      localStorage.setItem("token", token);
+      sessionStorage.setItem("token", token);
 
       const loggedUser = {
         name,
         email: userEmail,
       };
 
-      localStorage.setItem("user", JSON.stringify(loggedUser));
+      sessionStorage.setItem("user", JSON.stringify(loggedUser));
       setUser(loggedUser);
 
       return true;
@@ -36,8 +36,8 @@ export function AuthProvider({ children }) {
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
+    sessionStorage.removeItem("user");
+    sessionStorage.removeItem("token");
   };
 
   return (

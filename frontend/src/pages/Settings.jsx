@@ -3,7 +3,8 @@ import { useAuth } from "../context/AuthContext";
 import api from "../api/api";
 
 function Settings() {
-  const { user, logout } = useAuth();
+  // ❌ removed logout
+  const { user } = useAuth();
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -29,7 +30,6 @@ function Settings() {
     }
 
     try {
-      // 🔹 Backend endpoint (adjust if needed)
       await api.put("/api/users/change-password", {
         currentPassword,
         newPassword,
@@ -100,18 +100,6 @@ function Settings() {
             Update Password
           </button>
         </form>
-      </div>
-
-      {/* ===== LOGOUT ===== */}
-      <div className="bg-white rounded-xl shadow p-6">
-        <h2 className="text-lg font-semibold mb-3">Account</h2>
-
-        <button
-          onClick={logout}
-          className="text-red-600 border border-red-300 px-4 py-2 rounded-md"
-        >
-          Logout
-        </button>
       </div>
     </div>
   );
