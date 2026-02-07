@@ -2,15 +2,12 @@ target/
 .git/
 .gitignore
 .mvn/wrapper/commons-logging/
-.mvn/wrapper/maven-wrapper.properties
-.mvn/wrapper/maven-wrapper.jar
 *.log
 .DS_Store
 .classpath
 .project
 .settings/
 *.class
-*.jar
 *.war
 .idea/
 *.iml
