@@ -8,6 +8,7 @@ import java.util.List;
 
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
 
-    // Unsettled transactions
     List<Transaction> findByUserIdAndSettledFalse(Long userId);
+
+    List<Transaction> findByUserIdAndType(Long userId, TransactionType type);
 }

@@ -29,7 +29,6 @@ public class TransactionServiceImpl implements TransactionService {
         this.userRepository = userRepository;
     }
 
-    // 1️⃣ Add transaction (BORROW / LEND)
     @Override
     public TransactionResponse addTransaction(CreateTransactionRequest request) {
 
@@ -47,7 +46,6 @@ public class TransactionServiceImpl implements TransactionService {
         return mapToResponse(saved);
     }
 
-    // 2️⃣ Get transactions by type (BORROW / LEND)
     @Override
     public List<TransactionResponse> getTransactionsByType(TransactionType type) {
 
@@ -60,7 +58,6 @@ public class TransactionServiceImpl implements TransactionService {
                 .collect(Collectors.toList());
     }
 
-    // 3️⃣ Get unsettled transactions
     @Override
     public List<TransactionResponse> getUnsettledTransactions() {
 
@@ -73,7 +70,6 @@ public class TransactionServiceImpl implements TransactionService {
                 .collect(Collectors.toList());
     }
 
-    // 4️⃣ Settle a transaction
     @Override
     public TransactionResponse settleTransaction(Long transactionId) {
 

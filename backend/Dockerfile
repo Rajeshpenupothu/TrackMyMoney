@@ -1,0 +1,31 @@
+# Stage 1: Build with Maven
+FROM maven:3.9.6-eclipse-temurin-17 AS builder
+
+WORKDIR /build
+
+# Copy pom.xml and source
+COPY pom.xml .
+COPY src ./src
+COPY .mvn ./.mvn
+COPY mvnw .
+
+# Build the application
+RUN ./mvnw clean package -DskipTests
+
+# Stage 2: Runtime with JRE only (smaller image)
+FROM eclipse-temurin:17-jre-alpine
+
+WORKDIR /app
+
+# Copy the JAR from builder stage
+COPY --from=builder /build/target/backend-0.0.1-SNAPSHOT.jar app.jar
+
+# Expose port (Render will override this)
+EXPOSE 8080
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:${PORT:-8080}/api/health || exit 1
+
+# Run the application
+ENTRYPOINT ["java", "-XX:+UseG1GC", "-XX:MaxRAMPercentage=75.0", "-jar", "app.jar"]

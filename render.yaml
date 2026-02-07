@@ -8,19 +8,17 @@ services:
     branch: main
     root: backend
     plan: free
-    buildCommand: ./mvnw -DskipTests package
-    startCommand: java -Dserver.port=$PORT -jar target/backend-0.0.1-SNAPSHOT.jar
+    env: docker
+    dockerfilePath: ./backend/Dockerfile
+    buildCommand: ""
+    startCommand: ""
     envVars:
       - key: SPRING_DATASOURCE_URL
-        value: "${SPRING_DATASOURCE_URL}"
+        sync: false
       - key: SPRING_DATASOURCE_USERNAME
-        value: "${SPRING_DATASOURCE_USERNAME}"
+        sync: false
       - key: SPRING_DATASOURCE_PASSWORD
-        value: "${SPRING_DATASOURCE_PASSWORD}"
-      - key: JWT_SECRET
-        value: "${JWT_SECRET}"
-      - key: FRONTEND_ORIGINS
-        value: "${FRONTEND_ORIGINS}"
+        sync: false
 
 static_sites:
   - name: trackmymoney-frontend
