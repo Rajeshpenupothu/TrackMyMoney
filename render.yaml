@@ -1,0 +1,36 @@
+# Render blueprint for TrackMyMoney
+# Note: Replace placeholder values (env var values, repo) in Render after importing.
+
+services:
+  - type: web
+    name: trackmymoney-backend
+    repo: Rajeshpenupothu/trackmymoney
+    branch: main
+    root: backend
+    plan: free
+    buildCommand: ./mvnw -DskipTests package
+    startCommand: java -Dserver.port=$PORT -jar target/backend-0.0.1-SNAPSHOT.jar
+    envVars:
+      - key: SPRING_DATASOURCE_URL
+        value: "${SPRING_DATASOURCE_URL}"
+      - key: SPRING_DATASOURCE_USERNAME
+        value: "${SPRING_DATASOURCE_USERNAME}"
+      - key: SPRING_DATASOURCE_PASSWORD
+        value: "${SPRING_DATASOURCE_PASSWORD}"
+      - key: JWT_SECRET
+        value: "${JWT_SECRET}"
+      - key: FRONTEND_ORIGINS
+        value: "${FRONTEND_ORIGINS}"
+
+static_sites:
+  - name: trackmymoney-frontend
+    repo: Rajeshpenupothu/trackmymoney
+    branch: main
+    root: frontend
+    buildCommand: npm run build
+    publishPath: frontend/dist
+    envVars:
+      - key: VITE_API_BASE_URL
+        value: "${VITE_API_BASE_URL}"
+
+# Optional: add disks, cron jobs, or services for other parts of the app here.

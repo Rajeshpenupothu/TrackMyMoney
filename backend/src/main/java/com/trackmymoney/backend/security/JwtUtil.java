@@ -1,9 +1,11 @@
 package com.trackmymoney.backend.security;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -14,12 +16,12 @@ import java.util.Date;
 @Component
 public class JwtUtil {
 
-    // ✅ MUST be at least 32 characters
-    private static final String SECRET =
-            "trackmymoney-super-secret-key-should-be-long";
+    @Value("${JWT_SECRET:fallback-secret-should-be-overridden-in-production}")
+    private String secret;
 
-    private static final Key key =
-            Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
+    private Key getKey() {
+        return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+    }
 
     private static final long EXPIRATION_TIME =
             1000 * 60 * 60 * 24; // 24 hours
@@ -32,7 +34,7 @@ public class JwtUtil {
                 .setExpiration(
                         new Date(System.currentTimeMillis() + EXPIRATION_TIME)
                 )
-                .signWith(key, SignatureAlgorithm.HS256)
+                .signWith(getKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 
@@ -58,7 +60,7 @@ public class JwtUtil {
     // 🔎 Parse claims
     private Claims extractAllClaims(String token) {
         return Jwts.parserBuilder()
-                .setSigningKey(key)
+                .setSigningKey(getKey())
                 .build()
                 .parseClaimsJws(token)
                 .getBody();

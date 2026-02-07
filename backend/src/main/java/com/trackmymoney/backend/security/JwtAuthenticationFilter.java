@@ -1,5 +1,6 @@
 package com.trackmymoney.backend.security;
 
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -47,7 +48,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             token = authHeader.substring(7);
-            email = jwtUtil.extractEmail(token);
+            try {
+                email = jwtUtil.extractEmail(token);
+            } catch (JwtException | IllegalArgumentException e) {
+                // Invalid token format or parse error; do not authenticate
+                // Log at debug level to avoid noise on invalid tokens
+            }
         }
 
         if (email != null &&

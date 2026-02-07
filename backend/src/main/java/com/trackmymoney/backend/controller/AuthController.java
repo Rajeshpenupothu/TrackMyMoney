@@ -3,10 +3,12 @@ package com.trackmymoney.backend.controller;
 import com.trackmymoney.backend.dto.AuthResponse;
 import com.trackmymoney.backend.dto.CreateUserRequest;
 import com.trackmymoney.backend.dto.LoginRequest;
+import com.trackmymoney.backend.dto.ErrorResponse;
 import com.trackmymoney.backend.entity.User;
 import com.trackmymoney.backend.repository.UserRepository;
 import com.trackmymoney.backend.security.JwtUtil;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
@@ -49,17 +51,17 @@ public class AuthController {
 
     // ✅ LOGIN
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(
-            @RequestBody LoginRequest request) {
+    public ResponseEntity<?> login(
+            @Valid @RequestBody LoginRequest request) {
 
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() ->
-                        new RuntimeException("Invalid email or password"));
+        var user = userRepository.findByEmail(request.getEmail())
+                .orElse(null);
 
-        if (!passwordEncoder.matches(
+        if (user == null || !passwordEncoder.matches(
                 request.getPassword(),
                 user.getPassword())) {
-            throw new RuntimeException("Invalid email or password");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ErrorResponse("Invalid email or password"));
         }
 
         String token = jwtUtil.generateToken(user.getEmail());
