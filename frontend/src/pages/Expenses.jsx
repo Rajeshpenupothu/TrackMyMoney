@@ -1,0 +1,288 @@
+import { useState } from "react";
+import api from "../api/api";
+
+function Expenses({ expenses, setExpenses }) {
+  const [title, setTitle] = useState("");
+  const [amount, setAmount] = useState("");
+  const [category, setCategory] = useState("Food");
+
+  const [year, setYear] = useState(new Date().getFullYear());
+  const [month, setMonth] = useState(
+    new Date().toLocaleString("default", { month: "long" })
+  );
+  const [day, setDay] = useState("");
+  
+
+  const [editingId, setEditingId] = useState(null);
+  const [search, setSearch] = useState("");
+  const [showList, setShowList] = useState(true);
+  const [error, setError] = useState("");
+
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState(
+    new Date().toLocaleString("default", { month: "long" })
+  );
+  
+
+  /* ===== SAVE / UPDATE ===== */
+  const saveExpense = async (e) => {
+    e.preventDefault();
+
+    if (!title || !amount || !year || !month || !day || !category) {
+      setError("Please fill all fields");
+      return;
+    }
+
+    try {
+      const expenseDate = `${year}-${String(
+        new Date(`${month} 1`).getMonth() + 1
+      ).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+
+      const payload = {
+        amount: amount.toString(),
+        category,
+        description: title,
+        expenseDate,
+      };
+
+      if (editingId) {
+        const res = await api.put(`/expenses/${editingId}`, payload);
+        const updated = res.data;
+
+        setExpenses(
+          expenses.map((e) =>
+            e.id === editingId
+              ? formatExpense(updated)
+              : e
+          )
+        );
+        setEditingId(null);
+      } else {
+        const res = await api.post("/expenses", payload);
+        setExpenses([...expenses, formatExpense(res.data)]);
+      }
+
+      setTitle("");
+      setAmount("");
+      setCategory("Food");
+      setDay("");
+      setError("");
+    } catch (err) {
+      console.error(err);
+      setError("Failed to save expense");
+    }
+  };
+
+  /* ===== FORMATTER ===== */
+  const formatExpense = (data) => {
+    const d = new Date(data.expenseDate);
+    return {
+      id: data.id,
+      title: data.description,
+      description: data.description,
+      amount: data.amount,
+      category: data.category,
+      year: d.getFullYear(),
+      month: d.toLocaleString("default", { month: "long" }),
+      day: d.getDate(),
+    };
+  };
+
+  /* ===== DELETE ===== */
+  const deleteExpense = async (id) => {
+    try {
+      await api.delete(`/expenses/${id}`);
+      setExpenses(expenses.filter((e) => e.id !== id));
+    } catch (err) {
+      console.error(err);
+      alert("Failed to delete expense");
+    }
+  };
+
+  /* ===== EDIT ===== */
+  const startEdit = (e) => {
+    setTitle(e.title || e.description);
+    setAmount(e.amount);
+    setCategory(e.category);
+    setYear(e.year);
+    setMonth(e.month);
+    setDay(e.day);
+    setEditingId(e.id);
+    setError("");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  /* ===== SEARCH FIX ===== */
+  const filteredExpenses = expenses.filter((e) => {
+  const matchesSearch =
+    (e.title || e.description || "")
+      .toLowerCase()
+      .includes(search.toLowerCase());
+
+  const matchesDate =
+    Number(e.year) === Number(selectedYear) &&
+    e.month === selectedMonth;
+
+  return matchesSearch && matchesDate;
+});
+
+
+  /* ===== GROUPING FIX ===== */
+  // ===== SORT BY DATE (Latest first) =====
+filteredExpenses.sort((a, b) => {
+  const dateA = new Date(`${a.year}-${a.month} ${a.day}`);
+  const dateB = new Date(`${b.year}-${b.month} ${b.day}`);
+  return dateB - dateA; // latest first
+});
+
+  const groupedExpenses = {};
+
+filteredExpenses.forEach((e) => {
+  const key = `${e.year} ${e.month}`;
+  if (!groupedExpenses[key]) groupedExpenses[key] = [];
+  groupedExpenses[key].push(e);
+});
+return (
+  <div>
+    <h1 className="text-2xl font-semibold mb-4">Expenses</h1>
+
+    <div className="flex gap-8 items-start">
+
+
+        {/* FORM */}
+        <form onSubmit={saveExpense} className="card p-6 w-1/2 h-fit">
+  {error && <p className="mb-3 text-sm text-red-600">{error}</p>}
+
+  <label className="text-sm font-semibold mb-1 block">Title</label>
+  <input
+    value={title}
+    onChange={(e) => setTitle(e.target.value)}
+    className="input mb-3"
+  />
+
+  <label className="text-sm font-semibold mb-1 block">Amount (₹)</label>
+  <input
+    type="number"
+    value={amount}
+    onChange={(e) => setAmount(e.target.value)}
+    className="input mb-3"
+  />
+
+  <label className="text-sm font-semibold mb-1 block">Date</label>
+  <div className="grid grid-cols-3 gap-3 mb-3">
+    <select value={year} onChange={(e)=>setYear(Number(e.target.value))} className="input">
+      {[2024,2025,2026].map(y=> <option key={y}>{y}</option>)}
+    </select>
+
+    <select value={month} onChange={(e)=>setMonth(e.target.value)} className="input">
+      {[
+        "January","February","March","April","May","June",
+        "July","August","September","October","November","December"
+      ].map(m=> <option key={m}>{m}</option>)}
+    </select>
+
+    <input
+      type="number"
+      placeholder="Day"
+      value={day}
+      onChange={(e)=>setDay(e.target.value)}
+      className="input"
+    />
+  </div>
+
+  <label className="text-sm font-semibold mb-1 block">Category</label>
+  <select
+    value={category}
+    onChange={(e) => setCategory(e.target.value)}
+    className="input mb-4"
+  >
+    <option>Food</option>
+    <option>Travel</option>
+    <option>Rent</option>
+    <option>Shopping</option>
+    <option>Other</option>
+  </select>
+
+  <button className="btn block w-full mt-3">
+  {editingId ? "Update Lending" : "Add Lending"}
+</button>
+
+
+</form>
+
+
+        {/* LIST */}
+        <div className="card p-6 w-1/2 max-h-[420px] overflow-y-auto">
+  <div className="p-4 border-b space-y-3">
+    <h2 className="font-semibold">Expense List</h2>
+
+    <input
+      type="text"
+      placeholder="Search in this list..."
+      value={search}
+      onChange={(e) => setSearch(e.target.value)}
+      className="input"
+    />
+
+    <div className="flex gap-3">
+      <select
+        value={selectedYear}
+        onChange={(e) => setSelectedYear(Number(e.target.value))}
+        className="input"
+      >
+        {[2024, 2025, 2026].map((y) => (
+          <option key={y}>{y}</option>
+        ))}
+      </select>
+
+      <select
+        value={selectedMonth}
+        onChange={(e) => setSelectedMonth(e.target.value)}
+        className="input"
+      >
+        {[
+          "January","February","March","April","May","June",
+          "July","August","September","October","November","December"
+        ].map((m) => (
+          <option key={m}>{m}</option>
+        ))}
+      </select>
+    </div>
+  </div>
+
+  <div className="p-4 border-t">
+    {Object.keys(groupedExpenses).map((group) => (
+      <div key={group} className="mb-4">
+        <h3 className="text-sm font-semibold mb-2">{group}</h3>
+
+        {groupedExpenses[group].map((e) => (
+          <div
+            key={e.id}
+            className="flex justify-between items-center border rounded p-3 mb-2 hover:shadow-md transition"
+          >
+            <div>
+              <p className="font-medium">{e.title}</p>
+              <p className="text-xs opacity-60">
+                Day {e.day} · {e.category}
+              </p>
+            </div>
+
+            <div className="flex gap-2 items-center">
+              <span className="font-semibold">₹{e.amount}</span>
+              <button onClick={() => startEdit(e)} className="text-blue-600 text-xs border px-2 rounded">Edit</button>
+              <button onClick={() => deleteExpense(e.id)} className="text-red-600 text-xs border px-2 rounded">Delete</button>
+            </div>
+          </div>
+        ))}
+      </div>
+    ))}
+  </div>
+</div>
+</div>
+
+      </div>
+);
+
+}
+
+export default Expenses;

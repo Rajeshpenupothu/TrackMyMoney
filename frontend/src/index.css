@@ -1,0 +1,103 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+/* ===================== */
+/*  GLOBAL FONT (FIXED) */
+/* ===================== */
+@layer base {
+  html {
+    font-family: 'Inter', sans-serif;
+  }
+}
+
+
+/* ===================== */
+/* PAGE BACKGROUND      */
+/* ===================== */
+html, body, #root {
+  @apply bg-gray-100 text-gray-900 dark:text-gray-200;
+}
+
+/* Dark mode background */
+.dark html,
+.dark body,
+.dark #root {
+  background: #666666;
+}
+
+
+/* ===================== */
+/* CARD STYLE            */
+/* ===================== */
+.card {
+  @apply rounded-2xl p-6 border;
+  background: white;
+  border-color: #E6E9EF;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.dark .card {
+  background: #3f3f3f;
+  border: 1px solid #6b6b6b;
+}
+
+
+/* ===================== */
+/* INPUT STYLE           */
+/* ===================== */
+.input {
+  @apply rounded-xl px-4 py-2 outline-none text-gray-900;
+  background: white;
+  border: 1px solid #CFD5D7;
+  transition: all 0.2s ease;
+}
+
+.input:focus {
+  border-color: #94a3b8;
+}
+
+.dark .input {
+  background: #3f3f3f;
+  color: white;
+  border: 1px solid #6b6b6b;
+}
+
+.dark .input:focus {
+  border-color: #a1a1aa;
+}
+
+
+/* ===================== */
+/* BUTTON STYLE          */
+/* ===================== */
+.btn {
+  @apply rounded-xl px-6 py-2 font-medium transition-all duration-200;
+  border: 1px solid #CFD5D7;
+  background: white;
+  color: #1f2937;
+}
+
+.btn:hover {
+  background: #F5F7FA;
+}
+
+.dark .btn {
+  border: 1px solid #6b6b6b;
+  background: #575757;
+  color: white;
+}
+
+.dark .btn:hover {
+  background: #6a6a6a;
+}
+
+
+/* ===================== */
+/* FONT SMOOTHING       */
+/* ===================== */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}

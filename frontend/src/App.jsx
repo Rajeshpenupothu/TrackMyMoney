@@ -8,12 +8,29 @@ import Lendings from "./pages/Lendings";
 import Settings from "./pages/Settings";
 import Login from "./pages/Login";
 import Reports from "./pages/Reports";
+import Help from "./pages/Help";
 import { useAuth } from "./context/AuthContext";
+import Profile from "./pages/Profile"; 
 import api from "./api/api";
 
 function App() {
   const { user } = useAuth();
   const [activePage, setActivePage] = useState("Home");
+
+  /* ✅ GLOBAL DARK MODE STATE */
+  const [dark, setDark] = useState(
+    localStorage.getItem("theme") === "dark"
+  );
+
+  useEffect(() => {
+    if (dark) {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+    }
+  }, [dark]);
 
   const today = new Date();
   const [selectedYear, setSelectedYear] = useState(today.getFullYear());
@@ -35,7 +52,6 @@ function App() {
       const borRes = await api.get("/borrowings");
       const lenRes = await api.get("/lendings");
 
-      /* ===== EXPENSES ===== */
       setExpenses(
         expRes.data.map((e) => ({
           id: e.id,
@@ -51,7 +67,6 @@ function App() {
         }))
       );
 
-      /* ===== INCOMES ===== */
       setIncomes(
         incRes.data.map((i) => ({
           id: i.id,
@@ -64,50 +79,69 @@ function App() {
         }))
       );
 
-      /* ===== BORROWINGS (FIXED) ===== */
       setBorrowings(
-        borRes.data.map((b) => ({
-          id: b.id,
-          name: b.name,
-          amount: b.amount,
-          year: new Date(b.borrowDate).getFullYear(),
-          month: new Date(b.borrowDate).toLocaleString("default", {
-            month: "long",
-          }),
-          day: new Date(b.borrowDate).getDate(),
-          dueDay: new Date(b.dueDate).getDate(),
-          settled: b.settled, // ✅ IMPORTANT
-        }))
-      );
+  borRes.data.map((b) => {
+    const borrowD = new Date(b.borrowDate);
+    const dueD = new Date(b.dueDate);
 
-      /* ===== LENDINGS (FIXED) ===== */
-      setLendings(
-        lenRes.data.map((l) => ({
-          id: l.id,
-          name: l.name,
-          amount: l.amount,
-          year: new Date(l.lendDate).getFullYear(),
-          month: new Date(l.lendDate).toLocaleString("default", {
-            month: "long",
-          }),
-          day: new Date(l.lendDate).getDate(),
-          dueDay: new Date(l.dueDate).getDate(),
-          settled: l.settled, // ✅ IMPORTANT
-        }))
-      );
+    return {
+      id: b.id,
+      name: b.name,
+      amount: b.amount,
+
+      year: borrowD.getFullYear(),
+      month: borrowD.toLocaleString("default", { month: "long" }),
+      day: borrowD.getDate(),
+
+      // ✅ STORE FULL DUE DATE
+      dueDateObj: dueD,
+      settled: b.settled,
     };
+  })
+);
 
-    // ✅ THIS WAS THE MISSING PART
+
+      setLendings(
+  lenRes.data.map((l) => {
+    const lendD = new Date(l.lendDate);
+    const dueD = new Date(l.dueDate);
+
+    return {
+      id: l.id,
+      name: l.name,
+      amount: l.amount,
+
+      year: lendD.getFullYear(),
+      month: lendD.toLocaleString("default", { month: "long" }),
+      day: lendD.getDate(),
+
+      // ✅ STORE FULL DUE DATE
+      dueDateObj: dueD,
+      settled: l.settled,
+    };
+  })
+);
+    }
+
+
     loadData();
   }, [user]);
 
   if (!user) return <Login />;
 
   return (
-    <div className="flex h-screen bg-zinc-100">
-      <Sidebar active={activePage} setActive={setActivePage} />
+    <div className="flex h-screen bg-zinc-100 dark:bg-slate-900 text-zinc-900 dark:text-zinc-100">
 
-      <div className="flex-1 p-8 overflow-y-auto">
+      <Sidebar
+        active={activePage}
+        setActive={setActivePage}
+        dark={dark}
+        setDark={setDark}
+      />
+
+      <div className="flex-1 overflow-y-hidden bg-zinc-100 dark:bg-[#272727] p-6">
+
+
         {activePage === "Home" && (
           <Home
             incomes={incomes}
@@ -120,26 +154,21 @@ function App() {
             setSelectedMonth={setSelectedMonth}
           />
         )}
-
         {activePage === "Income" && (
           <Income incomes={incomes} setIncomes={setIncomes} />
         )}
-
         {activePage === "Expenses" && (
           <Expenses expenses={expenses} setExpenses={setExpenses} />
         )}
-
         {activePage === "Borrowings" && (
           <Borrowings
             borrowings={borrowings}
             setBorrowings={setBorrowings}
           />
         )}
-
         {activePage === "Lendings" && (
           <Lendings lendings={lendings} setLendings={setLendings} />
         )}
-
         {activePage === "Reports" && (
           <Reports
             incomes={incomes}
@@ -148,12 +177,15 @@ function App() {
             lendings={lendings}
           />
         )}
-
-        {activePage === "Settings" && <Settings />}
+        {activePage === "Settings" && (
+  <Settings dark={dark} setDark={setDark} />
+)}
+{activePage === "Profile" && <Profile />}
+        {activePage === "Help" && <Help />}
       </div>
     </div>
+    
   );
 }
 
 export default App;
- 

@@ -22,6 +22,12 @@ function Lendings({ lendings, setLendings }) {
   const [search, setSearch] = useState("");
   const [error, setError] = useState("");
 
+  const [selectedYear, setSelectedYear] = useState(today.getFullYear());
+const [selectedMonth, setSelectedMonth] = useState(
+  today.toLocaleString("default", { month: "long" })
+);
+
+
   /* ===== SAVE / UPDATE ===== */
   const saveLending = async (e) => {
     e.preventDefault();
@@ -97,24 +103,19 @@ function Lendings({ lendings, setLendings }) {
     }
   };
 
-  /* ===== SETTLED ===== */
+  /* ===== ACTIONS ===== */
   const markSettled = async (id) => {
     if (!window.confirm("Mark as settled?")) return;
-
     await api.put(`/lendings/${id}/settle`);
-
-    // Remove from active list (history stays in DB)
     setLendings(lendings.filter((l) => l.id !== id));
   };
 
-  /* ===== DELETE ===== */
   const deleteLending = async (id) => {
     if (!window.confirm("Delete this lending?")) return;
     await api.delete(`/lendings/${id}`);
     setLendings(lendings.filter((l) => l.id !== id));
   };
 
-  /* ===== EDIT ===== */
   const startEdit = (l) => {
     setName(l.name);
     setAmount(l.amount);
@@ -126,35 +127,25 @@ function Lendings({ lendings, setLendings }) {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  /* ===== FILTER ===== */
   const filtered = lendings.filter((l) =>
     l.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  /* ===== UI ===== */
-  return (
-    <div>
-      <h1 className="text-2xl font-semibold mb-4">Lendings</h1>
+ return (
+  <div className="text-zinc-800 dark:text-zinc-100">
+    <h1 className="text-2xl font-semibold mb-4">Lendings</h1>
 
-      <input
-        placeholder="Search by name..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        className="mb-4 w-full max-w-md border rounded-md px-3 py-2"
-      />
+    <div className="flex gap-8 items-start">
 
-      {/* FORM */}
-      <form
-        onSubmit={saveLending}
-        className="bg-white p-6 rounded-xl shadow mb-6 max-w-md"
-      >
+      {/* LEFT — FORM */}
+      <form onSubmit={saveLending} className="card p-6 w-1/2 h-fit">
         {error && <p className="text-red-600 text-sm mb-3">{error}</p>}
 
         <input
           placeholder="Lent to"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="w-full border rounded-md px-3 py-2 mb-3"
+          className="input mb-3"
         />
 
         <input
@@ -162,85 +153,132 @@ function Lendings({ lendings, setLendings }) {
           placeholder="Amount (₹)"
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
-          className="w-full border rounded-md px-3 py-2 mb-3"
+          className="input mb-3"
         />
 
         <div className="grid grid-cols-4 gap-3 mb-4">
-          <select value={year} onChange={(e) => setYear(Number(e.target.value))} className="border rounded px-3 py-2">
-            {[2024, 2025, 2026].map((y) => <option key={y}>{y}</option>)}
+          <select value={year} onChange={(e)=>setYear(Number(e.target.value))} className="input">
+            {[2024,2025,2026].map(y=> <option key={y}>{y}</option>)}
           </select>
 
-          <select value={month} onChange={(e) => setMonth(e.target.value)} className="border rounded px-3 py-2">
-            {MONTHS.map((m) => <option key={m}>{m}</option>)}
+          <select value={month} onChange={(e)=>setMonth(e.target.value)} className="input">
+            {MONTHS.map(m=> <option key={m}>{m}</option>)}
           </select>
 
           <input
             placeholder="Day"
             value={day}
-            onChange={(e) => setDay(e.target.value)}
-            className="border rounded px-3 py-2"
+            onChange={(e)=>setDay(e.target.value)}
+            className="input"
           />
 
           <input
             placeholder="Due"
             value={dueDay}
-            onChange={(e) => setDueDay(e.target.value)}
-            className="border rounded px-3 py-2"
+            onChange={(e)=>setDueDay(e.target.value)}
+            className="input"
           />
         </div>
 
-        <button className="bg-black text-white px-4 py-2 rounded">
+        <button className="btn block w-full mt-3">
           {editingId ? "Update Lending" : "Add Lending"}
         </button>
       </form>
 
-      {/* LIST */}
-      <div className="bg-white rounded-xl shadow p-6 max-w-md">
-        {filtered.length === 0 ? (
-          <p className="text-gray-500 text-sm">No active lendings</p>
-        ) : (
-          filtered.map((l) => (
-            <div
-              key={l.id}
-              className="flex justify-between items-center border p-3 rounded mb-2"
+
+      {/* RIGHT — LIST */}
+      <div  className="card p-6 w-1/2 max-h-[600px] overflow-y-auto">
+        <div className="border-b pb-4 mb-4 space-y-3">
+          <h2 className="font-semibold">Lending List</h2>
+
+          <input
+            type="text"
+            placeholder="Search in this list..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="input"
+          />
+
+          <div className="flex gap-3">
+            <select
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(Number(e.target.value))}
+              className="input"
             >
-              <div>
-                <p className="font-medium">{l.name}</p>
-                <p className="text-xs text-gray-500">
-                  {l.month} {l.day} · Due {l.dueDay}
-                </p>
-              </div>
+              {[2024, 2025, 2026].map((y) => (
+                <option key={y}>{y}</option>
+              ))}
+            </select>
 
-              <div className="flex gap-2 items-center">
-                <span className="font-semibold">₹{l.amount}</span>
+            <select
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(e.target.value)}
+              className="input"
+            >
+              {MONTHS.map((m) => (
+                <option key={m}>{m}</option>
+              ))}
+            </select>
+          </div>
+        </div>
 
-                <button
-                  onClick={() => markSettled(l.id)}
-                  className="text-green-600 text-xs border px-2 rounded"
+        <div>
+          {filtered.length === 0 ? (
+            <p className="text-sm opacity-60">No active lendings</p>
+          ) : (
+            <>
+              <h3 className="text-sm font-semibold mb-3">
+                {selectedYear} {selectedMonth}
+              </h3>
+
+              {filtered.map((l) => (
+                <div
+                  key={l.id}
+                  className="flex justify-between items-center border rounded p-3 mb-2 hover:shadow-md transition"
                 >
-                  Settled
-                </button>
+                  <div>
+                    <p className="font-medium">{l.name}</p>
+                    <p className="text-xs opacity-60">
+                      {l.month} {l.day} · Due {l.dueDay}
+                    </p>
+                  </div>
 
-                <button
-                  onClick={() => startEdit(l)}
-                  className="text-blue-600 text-xs border px-2 rounded"
-                >
-                  Edit
-                </button>
+                  <div className="flex gap-2 items-center">
+                    <span className="font-semibold">₹{l.amount}</span>
 
-                <button
-                  onClick={() => deleteLending(l.id)}
-                  className="text-red-600 text-xs border px-2 rounded"
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          ))
-        )}
+                    <button
+                      onClick={() => markSettled(l.id)}
+                      className="text-green-600 text-xs border px-2 rounded"
+                    >
+                      Settled
+                    </button>
+
+                    <button
+                      onClick={() => startEdit(l)}
+                      className="text-blue-600 text-xs border px-2 rounded"
+                    >
+                      Edit
+                    </button>
+
+                    <button
+                      onClick={() => deleteLending(l.id)}
+                      className="text-red-600 text-xs border px-2 rounded"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </>
+          )}
+        </div>
       </div>
+
     </div>
-  );
+  </div>
+);
+
+
 }
 
 export default Lendings;

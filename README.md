@@ -1,13 +1,17 @@
-# TrackMyMoney — Full Stack Expense Tracker
+# TrackMyMoney
 
-A full stack expense management application built using:
+Full-stack expense tracking application.
 
-- Spring Boot (Backend)
-- MySQL (Database)
-- Vite + Tailwind CSS (Frontend)
-- REST API Integration using Axios
+## Tech Stack
+- Frontend: React + Vite + Tailwind
+- Backend: Spring Boot
+- Database: MySQL
 
----
+## Run Frontend
+cd frontend
+npm install
+npm run dev
 
-
-
+## Run Backend
+cd backend
+mvn spring-boot:run
