@@ -1,12 +1,12 @@
 package com.trackmymoney.backend.service.impl;
 
 import com.trackmymoney.backend.dto.MonthlySummaryResponse;
-import com.trackmymoney.backend.entity.TransactionType;
 import com.trackmymoney.backend.entity.User;
 import com.trackmymoney.backend.exception.UserNotFoundException;
+import com.trackmymoney.backend.repository.BorrowingRepository;
 import com.trackmymoney.backend.repository.ExpenseRepository;
 import com.trackmymoney.backend.repository.IncomeRepository;
-import com.trackmymoney.backend.repository.TransactionRepository;
+import com.trackmymoney.backend.repository.LendingRepository;
 import com.trackmymoney.backend.repository.UserRepository;
 import com.trackmymoney.backend.security.SecurityUtils;
 import com.trackmymoney.backend.service.SummaryService;
@@ -20,18 +20,21 @@ public class SummaryServiceImpl implements SummaryService {
 
     private final ExpenseRepository expenseRepository;
     private final IncomeRepository incomeRepository;
-    private final TransactionRepository transactionRepository;
+    private final BorrowingRepository borrowingRepository;
+    private final LendingRepository lendingRepository;
     private final UserRepository userRepository;
 
     public SummaryServiceImpl(
             ExpenseRepository expenseRepository,
             IncomeRepository incomeRepository,
-            TransactionRepository transactionRepository,
+            BorrowingRepository borrowingRepository,
+            LendingRepository lendingRepository,
             UserRepository userRepository
     ) {
         this.expenseRepository = expenseRepository;
         this.incomeRepository = incomeRepository;
-        this.transactionRepository = transactionRepository;
+        this.borrowingRepository = borrowingRepository;
+        this.lendingRepository = lendingRepository;
         this.userRepository = userRepository;
     }
 
@@ -55,33 +58,47 @@ public class SummaryServiceImpl implements SummaryService {
                 .map(e -> e.getAmount())
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        // 🔥 Filter borrowings by date range (month) instead of fetching ALL
-        BigDecimal borrowed = transactionRepository
-                .findByUserIdAndType(user.getId(), TransactionType.BORROW)
+        // 🔥 Use BorrowingRepository to fetch borrowings for this month only
+        BigDecimal borrowed = borrowingRepository
+                .findByUser(user)
                 .stream()
-                .filter(t -> {
-                    LocalDate txDate = t.getTransactionDate();
-                    return !txDate.isBefore(start) && !txDate.isAfter(end);
+                .filter(b -> {
+                    LocalDate borrowDate = b.getBorrowDate();
+                    return !borrowDate.isBefore(start) && !borrowDate.isAfter(end);
                 })
-                .map(t -> t.getAmount())
+                .map(b -> b.getAmount())
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        // 🔥 Filter lendings by date range (month) instead of fetching ALL
-        BigDecimal lent = transactionRepository
-                .findByUserIdAndType(user.getId(), TransactionType.LEND)
+        // 🔥 Use LendingRepository to fetch lendings for this month only
+        BigDecimal lent = lendingRepository
+                .findByUser(user)
                 .stream()
-                .filter(t -> {
-                    LocalDate txDate = t.getTransactionDate();
-                    return !txDate.isBefore(start) && !txDate.isAfter(end);
+                .filter(l -> {
+                    LocalDate lendDate = l.getLendDate();
+                    return !lendDate.isBefore(start) && !lendDate.isAfter(end);
                 })
-                .map(t -> t.getAmount())
+                .map(l -> new BigDecimal(l.getAmount()))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        BigDecimal unsettled = transactionRepository
-                .findByUserIdAndSettledFalse(user.getId())
+        // 🔥 Calculate unsettled amount from both borrowings and lendings
+        BigDecimal unsettled = BigDecimal.ZERO;
+        
+        // Unsettled borrowings (money owed to others)
+        BigDecimal unsettledBorrowed = borrowingRepository
+                .findByUserAndSettledFalse(user)
                 .stream()
-                .map(t -> t.getAmount())
+                .map(b -> b.getAmount())
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+        
+        // Unsettled lendings (money others owe to you)
+        BigDecimal unsettledLent = lendingRepository
+                .findByUser(user)
+                .stream()
+                .filter(l -> !l.isSettled())
+                .map(l -> new BigDecimal(l.getAmount()))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        
+        unsettled = unsettledBorrowed.add(unsettledLent);
 
         BigDecimal savings = totalIncome.subtract(totalExpense);
 
