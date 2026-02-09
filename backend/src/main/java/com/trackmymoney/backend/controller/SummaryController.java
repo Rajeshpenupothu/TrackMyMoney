@@ -1,50 +1,40 @@
 package com.trackmymoney.backend.controller;
 
-import com.trackmymoney.backend.dto.MonthlySummaryResponse;
-import com.trackmymoney.backend.service.SummaryService;
+import com.trackmymoney.backend.dto.DashboardSummaryDTO;
+import com.trackmymoney.backend.service.DashboardService;
+import com.trackmymoney.backend.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/summary")
+@RequestMapping("/api/summary") // Matching your frontend call
 public class SummaryController {
 
-    private final SummaryService summaryService;
-
-    public SummaryController(SummaryService summaryService) {
-        this.summaryService = summaryService;
-    }
+    @Autowired private DashboardService dashboardService;
+    @Autowired private UserService userService;
 
     @GetMapping("/monthly")
-    public ResponseEntity<?> getSummary(
-            @RequestParam int year,
-            @RequestParam int month
-    ) {
+    public ResponseEntity<?> getSummary() {
         try {
-            MonthlySummaryResponse response = summaryService.getMonthlySummary(year, month);
-            return ResponseEntity.ok(response);
+            // 1. Extract email from JWT token in Security Context
+            String email = SecurityContextHolder.getContext().getAuthentication().getName();
+            
+            // 2. Fetch the Long ID using the email
+            Long userId = userService.findIdByEmail(email);
+            
+            // 3. Get the summary totals
+            DashboardSummaryDTO dashboard = dashboardService.getSummary(userId);
+            return ResponseEntity.ok(dashboard);
         } catch (Exception e) {
             // Log the error so we can see what went wrong in server logs
             System.err.println("Error in /api/summary/monthly: " + e.getMessage());
             e.printStackTrace();
-            
-            // Return error details for debugging
             return ResponseEntity.status(500).body(
-                new ErrorResponse("An error occurred while fetching summary: " + e.getMessage())
+                "{\"error\": \"" + e.getMessage() + "\"}"
             );
         }
     }
-    
-    // Simple error response class
-    public static class ErrorResponse {
-        public String error;
-        
-        public ErrorResponse(String error) {
-            this.error = error;
-        }
-        
-        public String getError() {
-            return error;
-        }
-    }
 }
+

@@ -72,4 +72,12 @@ public class UserServiceImpl implements UserService {
                 user.getCreatedAt()
         );
     }
+
+    @Override
+    public Long findIdByEmail(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new UserNotFoundException("User not found with email: " + email));
+        return user.getId();
+    }
 }
