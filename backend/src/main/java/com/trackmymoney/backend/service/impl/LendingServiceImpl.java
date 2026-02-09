@@ -10,6 +10,7 @@ import com.trackmymoney.backend.security.SecurityUtils;
 import com.trackmymoney.backend.service.LendingService;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -34,7 +35,10 @@ public class LendingServiceImpl implements LendingService {
     public LendingResponse create(LendingRequest r) {
         Lending l = new Lending();
         l.setName(r.name());
-        l.setAmount(r.amount());
+        
+        // FIX: Convert Double (Request) -> BigDecimal (Entity)
+        l.setAmount(BigDecimal.valueOf(r.amount()));
+        
         l.setLendDate(r.lendDate());
         l.setDueDate(r.dueDate());
         l.setUser(currentUser());
@@ -50,7 +54,10 @@ public class LendingServiceImpl implements LendingService {
                 .orElseThrow(() -> new RuntimeException("Lending not found"));
 
         l.setName(r.name());
-        l.setAmount(r.amount());
+        
+        // FIX: Convert Double (Request) -> BigDecimal (Entity)
+        l.setAmount(BigDecimal.valueOf(r.amount()));
+        
         l.setLendDate(r.lendDate());
         l.setDueDate(r.dueDate());
 
@@ -89,7 +96,8 @@ public class LendingServiceImpl implements LendingService {
         return new LendingResponse(
                 l.getId(),
                 l.getName(),
-                l.getAmount(),
+                // FIX: Convert BigDecimal (Entity) -> Double (Response)
+                l.getAmount().doubleValue(),
                 l.getLendDate(),
                 l.getDueDate(),
                 l.isSettled()

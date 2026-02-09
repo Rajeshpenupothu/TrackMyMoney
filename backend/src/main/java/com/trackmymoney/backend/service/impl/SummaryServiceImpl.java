@@ -58,7 +58,7 @@ public class SummaryServiceImpl implements SummaryService {
                 .map(e -> e.getAmount())
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        // 🔥 Use BorrowingRepository to fetch borrowings for this month only
+        // Fetch borrowings for this month
         BigDecimal borrowed = borrowingRepository
                 .findByUser(user)
                 .stream()
@@ -69,7 +69,7 @@ public class SummaryServiceImpl implements SummaryService {
                 .map(b -> b.getAmount() != null ? b.getAmount() : BigDecimal.ZERO)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        // 🔥 Use LendingRepository to fetch lendings for this month only
+        // Fetch lendings for this month
         BigDecimal lent = lendingRepository
                 .findByUser(user)
                 .stream()
@@ -77,34 +77,26 @@ public class SummaryServiceImpl implements SummaryService {
                     LocalDate lendDate = l.getLendDate();
                     return lendDate != null && !lendDate.isBefore(start) && !lendDate.isAfter(end);
                 })
-                .map(l -> {
-                    Double amount = l.getAmount();
-                    return amount != null ? BigDecimal.valueOf(amount) : BigDecimal.ZERO;
-                })
+                // FIX: l.getAmount() is already BigDecimal. No need to cast to Double.
+                .map(l -> l.getAmount() != null ? l.getAmount() : BigDecimal.ZERO)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        // 🔥 Calculate unsettled amount from both borrowings and lendings
-        BigDecimal unsettled = BigDecimal.ZERO;
-        
-        // Unsettled borrowings (money owed to others)
+        // Calculate unsettled amount
         BigDecimal unsettledBorrowed = borrowingRepository
                 .findByUserAndSettledFalse(user)
                 .stream()
                 .map(b -> b.getAmount() != null ? b.getAmount() : BigDecimal.ZERO)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         
-        // Unsettled lendings (money others owe to you)
         BigDecimal unsettledLent = lendingRepository
                 .findByUser(user)
                 .stream()
                 .filter(l -> !l.isSettled())
-                .map(l -> {
-                    Double amount = l.getAmount();
-                    return amount != null ? BigDecimal.valueOf(amount) : BigDecimal.ZERO;
-                })
+                // FIX: l.getAmount() is already BigDecimal.
+                .map(l -> l.getAmount() != null ? l.getAmount() : BigDecimal.ZERO)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         
-        unsettled = unsettledBorrowed.add(unsettledLent);
+        BigDecimal unsettled = unsettledBorrowed.add(unsettledLent);
 
         BigDecimal savings = totalIncome.subtract(totalExpense);
 
@@ -120,10 +112,7 @@ public class SummaryServiceImpl implements SummaryService {
 
     private User getLoggedInUser() {
         String email = SecurityUtils.getCurrentUserEmail();
-
         return userRepository.findByEmail(email)
-                .orElseThrow(() ->
-                        new UserNotFoundException("User not found with email: " + email)
-                );
+                .orElseThrow(() -> new UserNotFoundException("User not found with email: " + email));
     }
 }

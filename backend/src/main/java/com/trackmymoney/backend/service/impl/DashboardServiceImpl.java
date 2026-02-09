@@ -1,37 +1,61 @@
 package com.trackmymoney.backend.service.impl;
 
-import com.trackmymoney.backend.dto.DashboardSummaryDTO;
-import com.trackmymoney.backend.repository.*;
+import com.trackmymoney.backend.entity.User;
+import com.trackmymoney.backend.repository.BorrowingRepository;
+import com.trackmymoney.backend.repository.ExpenseRepository;
+import com.trackmymoney.backend.repository.IncomeRepository;
+import com.trackmymoney.backend.repository.LendingRepository;
 import com.trackmymoney.backend.service.DashboardService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.Map;
+
 @Service
 public class DashboardServiceImpl implements DashboardService {
 
-    @Autowired private IncomeRepository incomeRepo;
-    @Autowired private ExpenseRepository expenseRepo;
-    @Autowired private BorrowingRepository borrowingRepo;
-    @Autowired private LendingRepository lendingRepo;
+    @Autowired private IncomeRepository incomeRepository;
+    @Autowired private ExpenseRepository expenseRepository;
+    @Autowired private BorrowingRepository borrowingRepository;
+    @Autowired private LendingRepository lendingRepository;
 
     @Override
-    public DashboardSummaryDTO getSummary(Long userId) {
-        // Use Double wrapper to prevent NullPointerException on empty data
-        Double income = incomeRepo.sumByUserId(userId);
-        Double expense = expenseRepo.sumByUserId(userId);
-        Double borrowed = borrowingRepo.sumByUserId(userId);
-        Double lent = lendingRepo.sumByUserId(userId);
-        // Overdue sums (unsettled and past due date)
-        Double overdueBorrowed = borrowingRepo.sumOverdueByUserId(userId);
-        Double overdueLent = lendingRepo.sumOverdueByUserId(userId);
+    public Map<String, Double> getDashboardStats(User user) {
+        // Fetch sums as BigDecimal (handling nulls if DB returns null for empty tables)
+        BigDecimal totalIncome = incomeRepository.sumByUserId(user.getId());
+        BigDecimal totalExpense = expenseRepository.sumByUserId(user.getId());
+        BigDecimal totalBorrowed = borrowingRepository.sumByUserId(user.getId());
+        BigDecimal totalLent = lendingRepository.sumByUserId(user.getId());
+        
+        // Optional: If you have overdue methods
+        BigDecimal totalOverdueBorrowed = borrowingRepository.sumOverdueByUserId(user.getId());
+        BigDecimal totalOverdueLent = lendingRepository.sumOverdueByUserId(user.getId());
 
-        return new DashboardSummaryDTO(
-            income != null ? income : 0.0,
-            expense != null ? expense : 0.0,
-            borrowed != null ? borrowed : 0.0,
-            lent != null ? lent : 0.0,
-            overdueBorrowed != null ? overdueBorrowed : 0.0,
-            overdueLent != null ? overdueLent : 0.0
-        );
+        // Null checks: If no records exist, BigDecimal will be null. Convert to ZERO.
+        totalIncome = (totalIncome == null) ? BigDecimal.ZERO : totalIncome;
+        totalExpense = (totalExpense == null) ? BigDecimal.ZERO : totalExpense;
+        totalBorrowed = (totalBorrowed == null) ? BigDecimal.ZERO : totalBorrowed;
+        totalLent = (totalLent == null) ? BigDecimal.ZERO : totalLent;
+        totalOverdueBorrowed = (totalOverdueBorrowed == null) ? BigDecimal.ZERO : totalOverdueBorrowed;
+        totalOverdueLent = (totalOverdueLent == null) ? BigDecimal.ZERO : totalOverdueLent;
+
+        // Calculate Balance
+        BigDecimal balance = totalIncome.subtract(totalExpense);
+
+        // Prepare Response Map (Convert back to Double for frontend compatibility)
+        Map<String, Double> stats = new HashMap<>();
+        stats.put("totalIncome", totalIncome.doubleValue());
+        stats.put("totalExpense", totalExpense.doubleValue());
+        stats.put("balance", balance.doubleValue());
+        stats.put("totalBorrowed", totalBorrowed.doubleValue());
+        stats.put("totalLent", totalLent.doubleValue());
+        
+        // Add these only if your frontend expects them
+        stats.put("overdueBorrowed", totalOverdueBorrowed.doubleValue());
+        stats.put("overdueLent", totalOverdueLent.doubleValue());
+
+        return stats;
     }
 }

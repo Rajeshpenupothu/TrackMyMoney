@@ -1,7 +1,8 @@
 package com.trackmymoney.backend.service;
 
-import com.trackmymoney.backend.dto.DashboardSummaryDTO;
+import com.trackmymoney.backend.entity.User;
+import java.util.Map;
 
 public interface DashboardService {
-    DashboardSummaryDTO getSummary(Long userId);
+    Map<String, Double> getDashboardStats(User user);
 }

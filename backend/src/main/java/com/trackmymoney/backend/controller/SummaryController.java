@@ -1,40 +1,41 @@
 package com.trackmymoney.backend.controller;
 
-import com.trackmymoney.backend.dto.DashboardSummaryDTO;
+import com.trackmymoney.backend.entity.User;
+import com.trackmymoney.backend.exception.UserNotFoundException;
+import com.trackmymoney.backend.repository.UserRepository;
+import com.trackmymoney.backend.security.SecurityUtils;
 import com.trackmymoney.backend.service.DashboardService;
-import com.trackmymoney.backend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Map;
 
 @RestController
-@RequestMapping("/api/summary") // Matching your frontend call
+@RequestMapping("/api/summary")
 public class SummaryController {
 
-    @Autowired private DashboardService dashboardService;
-    @Autowired private UserService userService;
+    @Autowired
+    private DashboardService dashboardService;
 
-    @GetMapping("/monthly")
-    public ResponseEntity<?> getSummary() {
-        try {
-            // 1. Extract email from JWT token in Security Context
-            String email = SecurityContextHolder.getContext().getAuthentication().getName();
-            
-            // 2. Fetch the Long ID using the email
-            Long userId = userService.findIdByEmail(email);
-            
-            // 3. Get the summary totals
-            DashboardSummaryDTO dashboard = dashboardService.getSummary(userId);
-            return ResponseEntity.ok(dashboard);
-        } catch (Exception e) {
-            // Log the error so we can see what went wrong in server logs
-            System.err.println("Error in /api/summary/monthly: " + e.getMessage());
-            e.printStackTrace();
-            return ResponseEntity.status(500).body(
-                "{\"error\": \"" + e.getMessage() + "\"}"
-            );
-        }
+    @Autowired
+    private UserRepository userRepository;
+
+    @GetMapping
+    public ResponseEntity<Map<String, Double>> getSummary() {
+        // 1. Get the logged-in user's email
+        String email = SecurityUtils.getCurrentUserEmail();
+
+        // 2. Fetch the User entity
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+
+        // 3. Call the correct method: getDashboardStats(User)
+        // (Old code was calling getSummary(id), which didn't exist)
+        Map<String, Double> stats = dashboardService.getDashboardStats(user);
+
+        return ResponseEntity.ok(stats);
     }
 }
-
