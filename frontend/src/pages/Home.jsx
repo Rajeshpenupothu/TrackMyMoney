@@ -20,13 +20,14 @@ function Home({
     totalLent: 0,
     unsettledAmount: 0
   });
-  const [loading, setLoading] = useState(true);
+  const [fetching, setFetching] = useState(false); // background fetch when switching month/year
 
   // 🔥 This useEffect replaces the old manual .filter() and .reduce() logic
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        setLoading(true);
+        setFetching(true);
+
         // We call the single aggregated endpoint with filters
         const response = await api.get("/summary/monthly", {
           params: { year: selectedYear, month: selectedMonth }
@@ -35,7 +36,7 @@ function Home({
       } catch (error) {
         console.error("Dashboard fetch error:", error);
       } finally {
-        setLoading(false);
+        setFetching(false);
       }
     };
 
@@ -44,17 +45,6 @@ function Home({
 
   const availableBalance =
     summary.totalIncome - summary.totalExpense - summary.totalBorrowed + summary.totalLent;
-
-  if (loading) {
-    return (
-      <div className="p-10 text-center">
-        <div className="flex flex-col items-center justify-center space-y-4">
-          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-          <div className="text-black dark:text-white">Waking up server...</div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-8">
@@ -85,10 +75,10 @@ function Home({
 
       {/* Cards using summary data */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-7 mb-6">
-        <Card title="Total Income" value={summary.totalIncome} />
-        <Card title="Total Expenses" value={summary.totalExpense} />
-        <Card title="Total Borrowed" value={summary.totalBorrowed} />
-        <Card title="Total Lent" value={summary.totalLent} />
+        <Card title="Total Income" value={summary.totalIncome} fetching={fetching} />
+        <Card title="Total Expenses" value={summary.totalExpense} fetching={fetching} />
+        <Card title="Total Borrowed" value={summary.totalBorrowed} fetching={fetching} />
+        <Card title="Total Lent" value={summary.totalLent} fetching={fetching} />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-7 mb-6">
@@ -111,11 +101,15 @@ function Home({
 }
 
 // Keep your Card component as it is
-function Card({ title, value }) {
+function Card({ title, value, fetching }) {
   return (
     <div className="card p-7">
       <h2 className="text-sm text-gray-600 dark:text-gray-200">{title}</h2>
-      <p className="text-2xl font-semibold mt-3 text-black dark:text-white">₹{value}</p>
+      {fetching ? (
+        <div className="mt-3 h-6 w-28 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+      ) : (
+        <p className="text-2xl font-semibold mt-3 text-black dark:text-white">₹{value}</p>
+      )}
     </div>
   );
 }
