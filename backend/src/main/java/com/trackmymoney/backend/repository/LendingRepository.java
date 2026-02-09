@@ -15,16 +15,14 @@ public interface LendingRepository extends JpaRepository<Lending, Long> {
 
     List<Lending> findByUser(User user);
 
-    // NEW: Required for the PDF Report logic
     List<Lending> findByUserAndDueDateBetween(User user, LocalDate start, LocalDate end);
 
     Optional<Lending> findByIdAndUser(Long id, User user);
     
-    // UPDATED: Return BigDecimal instead of Double
     @Query("SELECT SUM(l.amount) FROM Lending l WHERE l.user.id = :userId")
     BigDecimal sumByUserId(@Param("userId") Long userId);
 
-    // UPDATED: Return BigDecimal instead of Double
-    @Query("SELECT SUM(l.amount) FROM Lending l WHERE l.user.id = :userId AND l.settled = false AND l.dueDate < CURRENT_DATE")
-    BigDecimal sumOverdueByUserId(@Param("userId") Long userId);
+    // FIX: This method signature now matches what your DashboardServiceImpl is calling
+    @Query("SELECT SUM(l.amount) FROM Lending l WHERE l.user.id = :userId AND l.settled = false AND l.dueDate < :today")
+    BigDecimal sumOverdueByUserId(@Param("userId") Long userId, @Param("today") LocalDate today);
 }

@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,16 +24,22 @@ public class DashboardServiceImpl implements DashboardService {
 
     @Override
     public Map<String, Double> getDashboardStats(User user, Integer year, String monthStr) {
-        // 1. Fetch Lifetime Totals (Ignoring date for now to ensure data shows up)
+        
+        // 1. Calculate Date for Overdue check (Today)
+        // This fixes the timezone issue by using the server's current date
+        LocalDate today = LocalDate.now();
+
+        // 2. Fetch Lifetime Totals
         BigDecimal totalIncome = incomeRepository.sumByUserId(user.getId());
         BigDecimal totalExpense = expenseRepository.sumByUserId(user.getId());
         BigDecimal totalBorrowed = borrowingRepository.sumByUserId(user.getId());
         BigDecimal totalLent = lendingRepository.sumByUserId(user.getId());
         
-        BigDecimal totalOverdueBorrowed = borrowingRepository.sumOverdueByUserId(user.getId());
-        BigDecimal totalOverdueLent = lendingRepository.sumOverdueByUserId(user.getId());
+        // 3. Fetch Overdue Totals using the new repository method that accepts 'today'
+        BigDecimal totalOverdueBorrowed = borrowingRepository.sumOverdueByUserId(user.getId(), today);
+        BigDecimal totalOverdueLent = lendingRepository.sumOverdueByUserId(user.getId(), today);
 
-        // 2. Handle Nulls (Default to 0.00)
+        // 4. Handle Nulls (Default to 0.00 if no records found)
         totalIncome = (totalIncome == null) ? BigDecimal.ZERO : totalIncome;
         totalExpense = (totalExpense == null) ? BigDecimal.ZERO : totalExpense;
         totalBorrowed = (totalBorrowed == null) ? BigDecimal.ZERO : totalBorrowed;
@@ -42,48 +49,43 @@ public class DashboardServiceImpl implements DashboardService {
 
         BigDecimal balance = totalIncome.subtract(totalExpense);
 
-        // 3. DEBUG PRINT (Check your backend console when you refresh the page!)
-        System.out.println("--- DASHBOARD STATS CALCULATED ---");
-        System.out.println("User: " + user.getEmail());
-        System.out.println("Income: " + totalIncome);
-        System.out.println("Expense: " + totalExpense);
-        System.out.println("----------------------------------");
-
-        // 4. Prepare Map with ALL POSSIBLE KEYS to fix the frontend mismatch
+        // 5. Prepare Response Map with ALL ALIASES to ensure frontend finds the data
         Map<String, Double> stats = new HashMap<>();
 
-        // --- INCOME ---
-        stats.put("totalIncome", totalIncome.doubleValue());  // Likely
-        stats.put("income", totalIncome.doubleValue());       // Common
-        stats.put("total_income", totalIncome.doubleValue()); // Snake_case
+        // Income
+        stats.put("totalIncome", totalIncome.doubleValue());
+        stats.put("income", totalIncome.doubleValue());
+        stats.put("total_income", totalIncome.doubleValue());
 
-        // --- EXPENSES ---
+        // Expense
         stats.put("totalExpense", totalExpense.doubleValue());
-        stats.put("totalExpenses", totalExpense.doubleValue()); // Plural
+        stats.put("totalExpenses", totalExpense.doubleValue());
         stats.put("expense", totalExpense.doubleValue());
         stats.put("expenses", totalExpense.doubleValue());
-        stats.put("total_expense", totalExpense.doubleValue());
 
-        // --- BORROWED ---
+        // Borrowing
         stats.put("totalBorrowed", totalBorrowed.doubleValue());
         stats.put("borrowed", totalBorrowed.doubleValue());
         stats.put("borrowings", totalBorrowed.doubleValue());
-        stats.put("total_borrowed", totalBorrowed.doubleValue());
 
-        // --- LENT ---
+        // Lending
         stats.put("totalLent", totalLent.doubleValue());
         stats.put("lent", totalLent.doubleValue());
         stats.put("lendings", totalLent.doubleValue());
-        stats.put("total_lent", totalLent.doubleValue());
 
-        // --- BALANCE ---
+        // Balance
         stats.put("balance", balance.doubleValue());
         stats.put("availableBalance", balance.doubleValue());
         stats.put("totalBalance", balance.doubleValue());
 
-        // --- OVERDUE ---
+        // --- OVERDUE (Sending multiple keys to catch frontend mismatch) ---
         stats.put("overdueBorrowed", totalOverdueBorrowed.doubleValue());
+        stats.put("totalOverdueBorrowed", totalOverdueBorrowed.doubleValue());
+        stats.put("overdue_borrowed", totalOverdueBorrowed.doubleValue());
+
         stats.put("overdueLent", totalOverdueLent.doubleValue());
+        stats.put("totalOverdueLent", totalOverdueLent.doubleValue());
+        stats.put("overdue_lent", totalOverdueLent.doubleValue());
 
         return stats;
     }
