@@ -23,6 +23,6 @@ public interface LendingRepository extends JpaRepository<Lending, Long> {
     BigDecimal sumByUserId(@Param("userId") Long userId);
 
     // FIX: This method signature now matches what your DashboardServiceImpl is calling
-    @Query("SELECT SUM(l.amount) FROM Lending l WHERE l.user.id = :userId AND l.settled = false AND l.dueDate < :today")
+    @Query("SELECT SUM(l.amount) FROM Lending l WHERE l.user.id = :userId AND l.settled = false AND l.dueDate <=:today")
     BigDecimal sumOverdueByUserId(@Param("userId") Long userId, @Param("today") LocalDate today);
 }
