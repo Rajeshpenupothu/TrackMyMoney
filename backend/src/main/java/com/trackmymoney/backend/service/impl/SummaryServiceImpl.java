@@ -60,7 +60,7 @@ public class SummaryServiceImpl implements SummaryService {
                 .findByUserIdAndType(user.getId(), TransactionType.BORROW)
                 .stream()
                 .filter(t -> {
-                    LocalDate txDate = t.getBorrowDate() != null ? t.getBorrowDate().toLocalDateTime().toLocalDate() : LocalDate.now();
+                    LocalDate txDate = t.getTransactionDate();
                     return !txDate.isBefore(start) && !txDate.isAfter(end);
                 })
                 .map(t -> t.getAmount())
@@ -71,7 +71,7 @@ public class SummaryServiceImpl implements SummaryService {
                 .findByUserIdAndType(user.getId(), TransactionType.LEND)
                 .stream()
                 .filter(t -> {
-                    LocalDate txDate = t.getLendDate() != null ? t.getLendDate().toLocalDateTime().toLocalDate() : LocalDate.now();
+                    LocalDate txDate = t.getTransactionDate();
                     return !txDate.isBefore(start) && !txDate.isAfter(end);
                 })
                 .map(t -> t.getAmount())
