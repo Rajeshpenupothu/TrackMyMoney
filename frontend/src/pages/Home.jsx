@@ -31,7 +31,7 @@ function Home({
         setFetching(true);
 
         // We call the single aggregated endpoint with filters
-        const response = await api.get("/summary/monthly", {
+        const response = await api.get("/summary", {
           params: { year: selectedYear, month: selectedMonth }
         });
         setSummary(response.data);

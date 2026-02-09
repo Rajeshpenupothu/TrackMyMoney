@@ -47,7 +47,7 @@ function Borrowings({ borrowings, setBorrowings }) {
     }
   }, []);
 
-  /* ===== SAVE / UPDATE ===== */
+ /* ===== SAVE / UPDATE ===== */
   const saveBorrowing = async (e) => {
     e.preventDefault();
     setError("");
@@ -58,16 +58,27 @@ function Borrowings({ borrowings, setBorrowings }) {
     }
 
     const monthIndex = MONTHS.indexOf(month);
-    const borrowDate = new Date(year, monthIndex, Number(day));
-    const dueDate = new Date(year, monthIndex, Number(dueDay));
+    
+    // Create Date objects (Local Time)
+    const borrowDateObj = new Date(year, monthIndex, Number(day));
+    const dueDateObj = new Date(year, monthIndex, Number(dueDay));
+
+    // FIX: Manually format to YYYY-MM-DD to avoid Timezone shift
+    // This ensures Feb 1st stays Feb 1st
+    const formatDate = (d) => {
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
+    };
 
     try {
       if (editingId) {
         const res = await api.put(`/borrowings/${editingId}`, {
           name,
           amount: amount.toString(),
-          borrowDate: borrowDate.toISOString().slice(0, 10),
-          dueDate: dueDate.toISOString().slice(0, 10),
+          borrowDate: formatDate(borrowDateObj), // Use helper
+          dueDate: formatDate(dueDateObj),       // Use helper
         });
 
         setBorrowings(
@@ -91,8 +102,8 @@ function Borrowings({ borrowings, setBorrowings }) {
         const res = await api.post("/borrowings", {
           name,
           amount: amount.toString(),
-          borrowDate: borrowDate.toISOString().slice(0, 10),
-          dueDate: dueDate.toISOString().slice(0, 10),
+          borrowDate: formatDate(borrowDateObj), // Use helper
+          dueDate: formatDate(dueDateObj),       // Use helper
         });
 
         setBorrowings([
