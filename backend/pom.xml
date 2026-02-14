@@ -82,6 +82,13 @@
             <scope>runtime</scope>
         </dependency>
 
+        <!-- OpenCSV for CSV Export -->
+        <dependency>
+            <groupId>com.opencsv</groupId>
+            <artifactId>opencsv</artifactId>
+            <version>5.9</version>
+        </dependency>
+
         <!-- iText7 for PDF Generation -->
         <dependency>
             <groupId>com.itextpdf</groupId>

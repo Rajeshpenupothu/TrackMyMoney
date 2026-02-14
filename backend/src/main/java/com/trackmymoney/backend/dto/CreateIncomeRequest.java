@@ -16,6 +16,8 @@ public class CreateIncomeRequest {
     @NotBlank(message = "Source is required")
     private String source;
 
+    private String category;
+
     private String description;
 
     @NotNull(message = "Income date is required")
@@ -35,6 +37,14 @@ public class CreateIncomeRequest {
 
     public void setSource(String source) {
         this.source = source;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
     }
 
     public String getDescription() {

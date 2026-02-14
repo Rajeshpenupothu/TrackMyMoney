@@ -19,6 +19,8 @@ public class Income {
     @Column(nullable = false)
     private String source;
 
+    private String category;
+
     private String description;
 
     @Column(name = "income_date", nullable = false)
@@ -38,6 +40,7 @@ public class Income {
     public Long getId() { return id; }
     public BigDecimal getAmount() { return amount; }
     public String getSource() { return source; }
+    public String getCategory() { return category; }
     public String getDescription() { return description; }
     public LocalDate getIncomeDate() { return incomeDate; }
     public LocalDateTime getCreatedAt() { return createdAt; }
@@ -46,6 +49,7 @@ public class Income {
     public void setId(Long id) { this.id = id; }
     public void setAmount(BigDecimal amount) { this.amount = amount; }
     public void setSource(String source) { this.source = source; }
+    public void setCategory(String category) { this.category = category; }
     public void setDescription(String description) { this.description = description; }
     public void setIncomeDate(LocalDate incomeDate) { this.incomeDate = incomeDate; }
     public void setUser(User user) { this.user = user; }

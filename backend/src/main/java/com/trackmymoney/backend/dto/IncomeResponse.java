@@ -8,6 +8,7 @@ public class IncomeResponse {
     private Long id;
     private BigDecimal amount;
     private String source;
+    private String category;
     private String description;
     private LocalDate incomeDate;
 
@@ -15,12 +16,14 @@ public class IncomeResponse {
             Long id,
             BigDecimal amount,
             String source,
+            String category,
             String description,
             LocalDate incomeDate
     ) {
         this.id = id;
         this.amount = amount;
         this.source = source;
+        this.category = category;
         this.description = description;
         this.incomeDate = incomeDate;
     }
@@ -28,6 +31,7 @@ public class IncomeResponse {
     public Long getId() { return id; }
     public BigDecimal getAmount() { return amount; }
     public String getSource() { return source; }
+    public String getCategory() { return category; }
     public String getDescription() { return description; }
     public LocalDate getIncomeDate() { return incomeDate; }
 }
