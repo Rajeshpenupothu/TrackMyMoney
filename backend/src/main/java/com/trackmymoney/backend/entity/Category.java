@@ -1,15 +1,9 @@
 package com.trackmymoney.backend.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "custom_categories")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class Category {
 
     @Id

@@ -5,7 +5,6 @@ import com.trackmymoney.backend.entity.User;
 import com.trackmymoney.backend.repository.CategoryRepository;
 import com.trackmymoney.backend.repository.UserRepository;
 import com.trackmymoney.backend.security.SecurityUtils;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
