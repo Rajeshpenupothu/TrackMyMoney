@@ -26,7 +26,6 @@ function Sidebar({ active, setActive, dark, setDark }) {
     { key: "Expenses", label: "Expenses", icon: IndianRupee },
     { key: "Borrowings", label: "Borrowings", icon: ArrowDownCircle },
     { key: "Lendings", label: "Lendings", icon: ArrowUpCircle },
-    { key: "Categories", label: "Categories", icon: Tag },
     { key: "Reports", label: "Reports", icon: FileText },
   ];
   // import { useRef, useEffect } from "react";

@@ -24,29 +24,19 @@ function Income({ incomes, setIncomes }) {
   );
 
   const [category, setCategory] = useState("");
-  const [categories, setCategories] = useState([]);
+  /* ===== HARDCODED CATEGORIES ===== */
+  const categories = [
+    { name: "Salary", icon: "💵" },
+    { name: "Freelance", icon: "💻" },
+    { name: "Investment", icon: "📈" },
+    { name: "Gift", icon: "🎁" },
+    { name: "Other", icon: "➕" },
+  ];
 
-  // Load incomes and categories
+  /* ===== LOAD INCOMES ===== */
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch categories
-        const catRes = await api.get("/categories?type=INCOME");
-        if (catRes.data.length > 0) {
-          setCategories(catRes.data);
-          setCategory(catRes.data[0].name);
-        } else {
-          setCategories([
-            { name: "Salary", icon: "💵" },
-            { name: "Freelance", icon: "💻" },
-            { name: "Investment", icon: "📈" },
-            { name: "Gift", icon: "🎁" },
-            { name: "Other", icon: "➕" }
-          ]);
-          setCategory("Salary");
-        }
-
-        // Only load if array is empty
         if (incomes.length === 0) {
           const res = await api.get("/incomes");
           setIncomes(res.data.map(i => ({

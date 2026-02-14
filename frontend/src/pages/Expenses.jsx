@@ -23,29 +23,19 @@ function Expenses({ expenses, setExpenses }) {
     new Date().toLocaleString("default", { month: "long" })
   );
 
-  const [categories, setCategories] = useState([]);
+  /* ===== HARDCODED CATEGORIES ===== */
+  const categories = [
+    { name: "Food", icon: "🍔" },
+    { name: "Travel", icon: "🚗" },
+    { name: "Rent", icon: "🏠" },
+    { name: "Shopping", icon: "🛍️" },
+    { name: "Other", icon: "📝" },
+  ];
 
-  // Load expenses and categories
+  // Load expenses
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch categories
-        const catRes = await api.get("/categories?type=EXPENSE");
-        if (catRes.data.length > 0) {
-          setCategories(catRes.data);
-          setCategory(catRes.data[0].name); // Set default to first category
-        } else {
-          // Fallback defaults
-          setCategories([
-            { name: "Food", icon: "🍔" },
-            { name: "Travel", icon: "🚗" },
-            { name: "Rent", icon: "🏠" },
-            { name: "Shopping", icon: "🛍️" },
-            { name: "Other", icon: "📝" }
-          ]);
-        }
-
-        // Only load expenses if array is empty
         if (expenses.length === 0) {
           const res = await api.get("/expenses");
           setExpenses(res.data.map(e => ({
