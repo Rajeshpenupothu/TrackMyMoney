@@ -13,4 +13,4 @@ target/
 *.iml
 node_modules/
 .vscode/
-.templates/
+.resources/
