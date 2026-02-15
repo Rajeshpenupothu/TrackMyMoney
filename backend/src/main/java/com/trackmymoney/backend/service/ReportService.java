@@ -6,6 +6,11 @@ import com.itextpdf.layout.Document;
 import com.itextpdf.layout.element.Cell;
 import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.element.Table;
+import com.itextpdf.kernel.colors.DeviceRgb;
+import com.itextpdf.kernel.pdf.canvas.draw.SolidLine;
+import com.itextpdf.layout.element.LineSeparator;
+import com.itextpdf.layout.properties.TextAlignment;
+import com.itextpdf.layout.properties.UnitValue;
 import com.trackmymoney.backend.entity.*;
 import com.trackmymoney.backend.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,13 +49,13 @@ public class ReportService {
         return createPdf(doc -> {
             addTitle(doc, "Finance Summary Report", monthStr, year);
             
-            Table table = new Table(2);
+            Table table = new Table(UnitValue.createPercentArray(new float[]{70, 30})).useAllAvailableWidth();
             addHeaderCell(table, "Type", "Amount");
             
-            addRow(table, "Income", totalIncome);
-            addRow(table, "Expenses", totalExpense);
-            addRow(table, "Borrowed (Due this month)", totalBorrowed);
-            addRow(table, "Lent (Due this month)", totalLent);
+            addRow(table, "Total Income", totalIncome);
+            addRow(table, "Total Expenses", totalExpense);
+            addRow(table, "Total Borrowed (Due this month)", totalBorrowed);
+            addRow(table, "Total Lent (Due this month)", totalLent);
             
             doc.add(table);
         });
@@ -65,17 +70,18 @@ public class ReportService {
 
         return createPdf(doc -> {
             addTitle(doc, "Expense Report", monthStr, year);
-            Table table = new Table(4);
+            Table table = new Table(UnitValue.createPercentArray(new float[]{20, 40, 20, 20})).useAllAvailableWidth();
             addHeaderCell(table, "Date", "Description", "Category", "Amount");
 
             if (expenses.isEmpty()) {
                 addEmptyRow(table, 4);
             } else {
                 for (Expense e : expenses) {
-                    table.addCell(new Cell().add(new Paragraph(formatDate(e.getExpenseDate()))));
-                    table.addCell(new Cell().add(new Paragraph(e.getDescription() != null ? e.getDescription() : "-")));
-                    table.addCell(new Cell().add(new Paragraph(e.getCategory())));
-                    table.addCell(new Cell().add(new Paragraph(formatMoney(e.getAmount()))));
+                    table.addCell(new Cell().add(new Paragraph(formatDate(e.getExpenseDate()))).setPadding(5));
+                    table.addCell(new Cell().add(new Paragraph(e.getDescription() != null ? e.getDescription() : "-")).setPadding(5));
+                    table.addCell(new Cell().add(new Paragraph(e.getCategory())).setPadding(5));
+                    table.addCell(new Cell().add(new Paragraph(formatMoney(e.getAmount())))
+                            .setTextAlignment(TextAlignment.RIGHT).setPadding(5));
                 }
             }
             doc.add(table);
@@ -91,16 +97,17 @@ public class ReportService {
 
         return createPdf(doc -> {
             addTitle(doc, "Income Report", monthStr, year);
-            Table table = new Table(3);
+            Table table = new Table(UnitValue.createPercentArray(new float[]{25, 50, 25})).useAllAvailableWidth();
             addHeaderCell(table, "Date", "Source", "Amount");
 
             if (incomes.isEmpty()) {
                 addEmptyRow(table, 3);
             } else {
                 for (Income i : incomes) {
-                    table.addCell(new Cell().add(new Paragraph(formatDate(i.getIncomeDate()))));
-                    table.addCell(new Cell().add(new Paragraph(i.getSource())));
-                    table.addCell(new Cell().add(new Paragraph(formatMoney(i.getAmount()))));
+                    table.addCell(new Cell().add(new Paragraph(formatDate(i.getIncomeDate()))).setPadding(5));
+                    table.addCell(new Cell().add(new Paragraph(i.getSource())).setPadding(5));
+                    table.addCell(new Cell().add(new Paragraph(formatMoney(i.getAmount())))
+                            .setTextAlignment(TextAlignment.RIGHT).setPadding(5));
                 }
             }
             doc.add(table);
@@ -117,23 +124,25 @@ public class ReportService {
 
         return createPdf(doc -> {
             addTitle(doc, "Borrow & Lend Report", monthStr, year);
-            Table table = new Table(4);
+            Table table = new Table(UnitValue.createPercentArray(new float[]{30, 20, 25, 25})).useAllAvailableWidth();
             addHeaderCell(table, "Name", "Type", "Due Date", "Amount");
 
             if (borrowings.isEmpty() && lendings.isEmpty()) {
                 addEmptyRow(table, 4);
             } else {
                 for (Borrowing b : borrowings) {
-                    table.addCell(new Cell().add(new Paragraph(b.getName())));
-                    table.addCell(new Cell().add(new Paragraph("Borrowed")));
-                    table.addCell(new Cell().add(new Paragraph(formatDate(b.getDueDate()))));
-                    table.addCell(new Cell().add(new Paragraph(formatMoney(b.getAmount()))));
+                    table.addCell(new Cell().add(new Paragraph(b.getName())).setPadding(5));
+                    table.addCell(new Cell().add(new Paragraph("Borrowed")).setPadding(5));
+                    table.addCell(new Cell().add(new Paragraph(formatDate(b.getDueDate()))).setPadding(5));
+                    table.addCell(new Cell().add(new Paragraph(formatMoney(b.getAmount())))
+                            .setTextAlignment(TextAlignment.RIGHT).setPadding(5));
                 }
                 for (Lending l : lendings) {
-                    table.addCell(new Cell().add(new Paragraph(l.getName())));
-                    table.addCell(new Cell().add(new Paragraph("Lent")));
-                    table.addCell(new Cell().add(new Paragraph(formatDate(l.getDueDate()))));
-                    table.addCell(new Cell().add(new Paragraph(formatMoney(l.getAmount()))));
+                    table.addCell(new Cell().add(new Paragraph(l.getName())).setPadding(5));
+                    table.addCell(new Cell().add(new Paragraph("Lent")).setPadding(5));
+                    table.addCell(new Cell().add(new Paragraph(formatDate(l.getDueDate()))).setPadding(5));
+                    table.addCell(new Cell().add(new Paragraph(formatMoney(l.getAmount())))
+                            .setTextAlignment(TextAlignment.RIGHT).setPadding(5));
                 }
             }
             doc.add(table);
@@ -158,7 +167,7 @@ public class ReportService {
     }
 
     private String formatMoney(BigDecimal amount) {
-        return "Rs. " + String.format("%.2f", amount);
+        return "Rs. " + String.format("%,.2f", amount);
     }
 
     private byte[] createPdf(java.util.function.Consumer<Document> contentGenerator) {
@@ -167,6 +176,12 @@ public class ReportService {
             PdfDocument pdf = new PdfDocument(writer);
             Document document = new Document(pdf);
             contentGenerator.accept(document);
+            
+            // Add Footer
+            document.add(new Paragraph("\nGenerated by TrackMyMoney on " + 
+                LocalDate.now().format(DateTimeFormatter.ofPattern("dd MMM yyyy")))
+                .setFontSize(9).setItalic().setOpacity(0.6f).setTextAlignment(TextAlignment.CENTER));
+            
             document.close();
             return pdfStream.toByteArray();
         } catch (Exception e) {
@@ -175,19 +190,27 @@ public class ReportService {
     }
 
     private void addTitle(Document doc, String title, String month, int year) {
-        doc.add(new Paragraph(title).setBold().setFontSize(18));
-        doc.add(new Paragraph("Period: " + month + " " + year).setFontSize(12).setMarginBottom(10));
+        DeviceRgb indigo = new DeviceRgb(79, 70, 229);
+        doc.add(new Paragraph("TrackMyMoney").setBold().setFontSize(24).setFontColor(indigo).setMarginBottom(0));
+        doc.add(new LineSeparator(new SolidLine(1f)).setMarginBottom(15).setOpacity(0.3f));
+        
+        doc.add(new Paragraph(title).setBold().setFontSize(18).setMarginBottom(2));
+        doc.add(new Paragraph("Financial Statement: " + month + " " + year).setFontSize(11).setItalic().setMarginBottom(20));
     }
 
     private void addHeaderCell(Table table, String... headers) {
+        DeviceRgb indigo = new DeviceRgb(79, 70, 229);
         for (String header : headers) {
-            table.addCell(new Cell().add(new Paragraph(header).setBold()));
+            table.addCell(new Cell().add(new Paragraph(header).setBold().setFontColor(new DeviceRgb(255, 255, 255)))
+                .setBackgroundColor(indigo)
+                .setPadding(8));
         }
     }
 
     private void addRow(Table table, String label, BigDecimal amount) {
-        table.addCell(new Cell().add(new Paragraph(label)));
-        table.addCell(new Cell().add(new Paragraph(formatMoney(amount))));
+        table.addCell(new Cell().add(new Paragraph(label)).setPadding(5));
+        table.addCell(new Cell().add(new Paragraph(formatMoney(amount)))
+            .setTextAlignment(TextAlignment.RIGHT).setPadding(5));
     }
     
     private void addEmptyRow(Table table, int cols) {
