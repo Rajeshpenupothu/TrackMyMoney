@@ -29,6 +29,10 @@ function App() {
       localStorage.setItem("theme", "light");
     }
   }, [dark]);
+  useEffect(() => {
+    fetch("https://trackmymoney-7v9w.onrender.com/health")
+      .catch(() => { });
+  }, []);
 
   const today = new Date();
   const [selectedYear, setSelectedYear] = useState(today.getFullYear());
