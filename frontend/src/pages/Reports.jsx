@@ -1,8 +1,4 @@
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
   Tooltip,
   CartesianGrid,
   ResponsiveContainer,
@@ -427,26 +423,6 @@ function Reports({ incomes, expenses, borrowings, lendings, loading }) {
 
       </div>
 
-      {/* BAR CHART */}
-      <div className="card p-4">
-        <ResponsiveContainer width="100%" height={250}>
-          <BarChart
-            data={[
-              { name: "Income", amount: yIncome },
-              { name: "Expenses", amount: yExpenses },
-              { name: "Borrowed", amount: yBorrowed },
-              { name: "Lent", amount: yLent },
-            ]}
-            barCategoryGap="40%"
-          >
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="name" />
-            <YAxis />
-            <Tooltip />
-            <Bar dataKey="amount" barSize={40} />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
     </div>
   );
 
