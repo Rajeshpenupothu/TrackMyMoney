@@ -4,6 +4,8 @@ import { Mail, MessageSquare, Shield, HelpCircle, Star, Zap, CheckCircle2, X } f
 function Help() {
   const [activeModal, setActiveModal] = useState(null); // 'privacy' | 'feedback'
   const [feedbackSent, setFeedbackSent] = useState(false);
+  const [feedback, setFeedback] = useState({ category: "Feature Request", message: "" });
+  const [loading, setLoading] = useState(false);
 
   const categories = [
     {
@@ -42,10 +44,19 @@ function Help() {
 
   const handleCategoryClick = (id) => {
     if (id === "privacy") setActiveModal("privacy");
-    if (id === "feedback") {
-      setFeedbackSent(true);
-      setTimeout(() => setFeedbackSent(false), 3000);
-    }
+    if (id === "feedback") setActiveModal("feedback");
+  };
+
+  const submitFeedback = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    // Simulate API call
+    await new Promise(r => setTimeout(r, 1000));
+    setFeedbackSent(true);
+    setActiveModal(null);
+    setFeedback({ category: "Feature Request", message: "" });
+    setLoading(false);
+    setTimeout(() => setFeedbackSent(false), 4000);
   };
 
   return (
@@ -110,6 +121,57 @@ function Help() {
           ))}
         </div>
       </div>
+
+      {/* Feedback Modal */}
+      {activeModal === "feedback" && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="card w-full max-w-md p-6 border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-2xl animate-in fade-in zoom-in duration-200">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-lg font-bold text-zinc-800 dark:text-zinc-100">Share Your Feedback</h2>
+              <button onClick={() => setActiveModal(null)} className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg">
+                <X size={20} className="text-zinc-400" />
+              </button>
+            </div>
+
+            <form onSubmit={submitFeedback} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-zinc-500">How can we help?</label>
+                <select
+                  value={feedback.category}
+                  onChange={e => setFeedback({ ...feedback, category: e.target.value })}
+                  className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg text-sm text-zinc-800 dark:text-zinc-100 focus:border-indigo-500 outline-none"
+                >
+                  <option>Feature Request</option>
+                  <option>Bug Report</option>
+                  <option>General Support</option>
+                  <option>Other</option>
+                </select>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-zinc-500">Message</label>
+                <textarea
+                  required
+                  rows={4}
+                  value={feedback.message}
+                  onChange={e => setFeedback({ ...feedback, message: e.target.value })}
+                  placeholder="Describe your suggestion or issue..."
+                  className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg text-sm text-zinc-800 dark:text-zinc-100 focus:border-indigo-500 outline-none resize-none"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading || !feedback.message.trim()}
+                className="w-full py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {loading ? <div className="animate-spin w-4 h-4 border-2 border-white/30 border-t-white rounded-full" /> : <MessageSquare size={16} />}
+                {loading ? "Sending..." : "Submit Feedback"}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Privacy Modal */}
       {activeModal === "privacy" && (

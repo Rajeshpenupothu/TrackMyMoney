@@ -1,12 +1,14 @@
 package com.trackmymoney.backend.controller;
 
-import com.trackmymoney.backend.dto.AuthResponse;
-import com.trackmymoney.backend.dto.CreateUserRequest;
-import com.trackmymoney.backend.dto.LoginRequest;
-import com.trackmymoney.backend.dto.ErrorResponse;
+import com.trackmymoney.backend.dto.*;
 import com.trackmymoney.backend.entity.User;
 import com.trackmymoney.backend.repository.UserRepository;
 import com.trackmymoney.backend.security.JwtUtil;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.gson.GsonFactory;
+import java.util.Collections;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -76,5 +78,46 @@ public class AuthController {
                         user.getEmail()
                 )
         );
+    }
+
+    @PostMapping("/google")
+    public ResponseEntity<?> googleLogin(@Valid @RequestBody GoogleLoginRequest request) {
+        try {
+            NetHttpTransport transport = new NetHttpTransport();
+            GsonFactory jsonFactory = new GsonFactory();
+
+            // Client ID should be configured via application.properties usually
+            String clientId = "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com";
+
+            GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(transport, jsonFactory)
+                    .setAudience(Collections.singletonList(clientId))
+                    .build();
+
+            GoogleIdToken idToken = verifier.verify(request.getToken());
+            if (idToken == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(new ErrorResponse("Invalid Google token"));
+            }
+
+            GoogleIdToken.Payload payload = idToken.getPayload();
+            String email = payload.getEmail();
+            String name = (String) payload.get("name");
+
+            User user = userRepository.findByEmail(email).orElseGet(() -> {
+                User newUser = new User();
+                newUser.setName(name != null ? name : "Google User");
+                newUser.setEmail(email);
+                // Random password since they login via Google
+                newUser.setPassword(passwordEncoder.encode(java.util.UUID.randomUUID().toString()));
+                return userRepository.save(newUser);
+            });
+
+            String token = jwtUtil.generateToken(user.getEmail());
+            return ResponseEntity.ok(new AuthResponse(token, user.getName(), user.getEmail()));
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ErrorResponse("Google authentication failed: " + e.getMessage()));
+        }
     }
 }

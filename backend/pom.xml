@@ -97,6 +97,13 @@
             <type>pom</type>
         </dependency>
 
+        <!-- Google Auth -->
+        <dependency>
+            <groupId>com.google.api-client</groupId>
+            <artifactId>google-api-client</artifactId>
+            <version>2.2.0</version>
+        </dependency>
+
         <!-- ✅ REQUIRED: Spring Boot Test (FIXES RAILWAY BUILD) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
