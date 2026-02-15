@@ -15,11 +15,17 @@ import api from "./api/api";
 
 function App() {
   const { user, isLoading } = useAuth();
-  const [activePage, setActivePage] = useState(localStorage.getItem("defaultPage") || "Home");
+  const [activePage, setActivePage] = useState(
+    localStorage.getItem("activePage") || localStorage.getItem("defaultPage") || "Home"
+  );
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [dark, setDark] = useState(
     localStorage.getItem("theme") === "dark"
   );
+
+  useEffect(() => {
+    localStorage.setItem("activePage", activePage);
+  }, [activePage]);
 
   useEffect(() => {
     if (dark) {
