@@ -98,6 +98,29 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @org.springframework.transaction.annotation.Transactional
+    public void updateName(String email, String newName) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("User not found with email: " + email));
+        user.setName(newName);
+        userRepository.save(user);
+    }
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional
+    public void changePassword(String email, String oldPassword, String newPassword) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("User not found with email: " + email));
+
+        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+            throw new RuntimeException("Old password does not match");
+        }
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+    }
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional
     public void resetAccount(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() ->

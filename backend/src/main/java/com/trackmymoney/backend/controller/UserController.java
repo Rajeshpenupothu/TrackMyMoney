@@ -1,8 +1,10 @@
 package com.trackmymoney.backend.controller;
 
-import com.trackmymoney.backend.dto.CreateUserRequest;
+import com.trackmymoney.backend.dto.UpdateNameRequest;
+import com.trackmymoney.backend.dto.UpdatePasswordRequest;
 import com.trackmymoney.backend.dto.UserResponse;
 import com.trackmymoney.backend.service.UserService;
+import java.security.Principal;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
@@ -24,9 +26,9 @@ public class UserController {
         this.userService = userService;
     }
 
-        @PostMapping
-        public ResponseEntity<UserResponse> createUser(
-            @Valid @RequestBody CreateUserRequest request) {
+    @PostMapping
+    public ResponseEntity<UserResponse> createUser(
+            @Valid @RequestBody com.trackmymoney.backend.dto.CreateUserRequest request) {
 
         return new ResponseEntity<>(
                 userService.createUser(request),
@@ -46,6 +48,18 @@ public class UserController {
             @PathVariable @NotBlank(message = "Email is required") @Email(message = "Invalid email format") String email) {
 
         return ResponseEntity.ok(userService.getUserByEmail(email));
+    }
+
+    @PutMapping("/profile/name")
+    public ResponseEntity<Void> updateName(Principal principal, @Valid @RequestBody UpdateNameRequest request) {
+        userService.updateName(principal.getName(), request.getName());
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/profile/password")
+    public ResponseEntity<Void> changePassword(Principal principal, @Valid @RequestBody UpdatePasswordRequest request) {
+        userService.changePassword(principal.getName(), request.getOldPassword(), request.getNewPassword());
+        return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/reset")

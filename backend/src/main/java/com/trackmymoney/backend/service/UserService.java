@@ -13,5 +13,9 @@ public interface UserService {
     
     Long findIdByEmail(String email);
 
+    void updateName(String email, String newName);
+
+    void changePassword(String email, String oldPassword, String newPassword);
+
     void resetAccount(String email);
 }

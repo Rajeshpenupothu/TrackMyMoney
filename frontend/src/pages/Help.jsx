@@ -1,8 +1,13 @@
-import { Mail, MessageSquare, Shield, HelpCircle, Star, Zap } from "lucide-react";
+import { useState } from "react";
+import { Mail, MessageSquare, Shield, HelpCircle, Star, Zap, CheckCircle2, X } from "lucide-react";
 
 function Help() {
+  const [activeModal, setActiveModal] = useState(null); // 'privacy' | 'feedback'
+  const [feedbackSent, setFeedbackSent] = useState(false);
+
   const categories = [
     {
+      id: "support",
       icon: Mail,
       title: "Direct Support",
       description: "Get in touch with our team for any technical issues.",
@@ -11,6 +16,7 @@ function Help() {
       color: "text-blue-500"
     },
     {
+      id: "feedback",
       icon: MessageSquare,
       title: "Feedback",
       description: "Have ideas to improve TrackMyMoney? We'd love to hear them.",
@@ -18,6 +24,7 @@ function Help() {
       color: "text-indigo-500"
     },
     {
+      id: "privacy",
       icon: Shield,
       title: "Privacy & Safety",
       description: "Learn how we protect your financial data and privacy.",
@@ -33,30 +40,51 @@ function Help() {
     "Set due dates for Borrowings to get a clear picture of your timeline."
   ];
 
+  const handleCategoryClick = (id) => {
+    if (id === "privacy") setActiveModal("privacy");
+    if (id === "feedback") {
+      setFeedbackSent(true);
+      setTimeout(() => setFeedbackSent(false), 3000);
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto py-8 px-4">
-      <div className="flex items-center gap-3 mb-8">
-        <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg">
-          <HelpCircle className="text-indigo-600 dark:text-indigo-400" size={24} />
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg">
+            <HelpCircle className="text-indigo-600 dark:text-indigo-400" size={24} />
+          </div>
+          <h1 className="text-2xl font-bold text-zinc-800 dark:text-white">Help & Feedback</h1>
         </div>
-        <h1 className="text-2xl font-bold text-zinc-800 dark:text-white">Help & Feedback</h1>
+
+        {feedbackSent && (
+          <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-800 rounded-lg text-sm animate-in fade-in slide-in-from-top-2">
+            <CheckCircle2 size={16} />
+            Feedback recorded! Thank you.
+          </div>
+        )}
       </div>
 
       {/* Categories Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
         {categories.map((cat, idx) => (
-          <div key={idx} className="card p-6 border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm flex flex-col h-full hover:border-indigo-500/50 transition-colors group">
+          <div
+            key={idx}
+            onClick={() => handleCategoryClick(cat.id)}
+            className="card p-6 border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm flex flex-col h-full hover:border-indigo-500/50 transition-all hover:shadow-md cursor-pointer group"
+          >
             <cat.icon className={`${cat.color} mb-4 group-hover:scale-110 transition-transform`} size={24} />
             <h3 className="font-semibold text-zinc-800 dark:text-zinc-100 mb-2">{cat.title}</h3>
             <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-6 flex-grow">{cat.description}</p>
             {cat.link ? (
-              <a href={cat.link} className="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:underline">
+              <a href={cat.link} onClick={e => e.stopPropagation()} className="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:underline">
                 {cat.action}
               </a>
             ) : (
-              <button className="text-left text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:underline">
+              <span className="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:underline">
                 {cat.action}
-              </button>
+              </span>
             )}
           </div>
         ))}
@@ -82,6 +110,51 @@ function Help() {
           ))}
         </div>
       </div>
+
+      {/* Privacy Modal */}
+      {activeModal === "privacy" && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="card w-full max-w-lg p-8 border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-2xl animate-in fade-in zoom-in duration-200">
+            <div className="flex justify-between items-start mb-6">
+              <div>
+                <h2 className="text-xl font-bold text-zinc-800 dark:text-zinc-100">Privacy & Data Policy</h2>
+                <p className="text-xs text-zinc-500 mt-1">Last updated: Feb 2024</p>
+              </div>
+              <button onClick={() => setActiveModal(null)} className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg">
+                <X size={20} className="text-zinc-400" />
+              </button>
+            </div>
+
+            <div className="space-y-4 text-sm text-zinc-600 dark:text-zinc-400 overflow-y-auto max-h-[60vh] pr-2">
+              <section>
+                <h3 className="font-semibold text-zinc-800 dark:text-zinc-200 mb-2">1. Data Ownership</h3>
+                <p>Your financial data belongs entirely to you. TrackMyMoney acts only as a secure storage and visualization layer for your personal records.</p>
+              </section>
+              <section>
+                <h3 className="font-semibold text-zinc-800 dark:text-zinc-200 mb-2">2. Encryption</h3>
+                <p>All sensitive information, including passwords, is hashed using industry-standard BCrypt. We never store plain-text passwords.</p>
+              </section>
+              <section>
+                <h3 className="font-semibold text-zinc-800 dark:text-zinc-200 mb-2">3. No Third-Party Selling</h3>
+                <p>We do not sell, rent, or trade your financial or personal data with any third parties. Your privacy is our highest priority.</p>
+              </section>
+              <section>
+                <h3 className="font-semibold text-zinc-800 dark:text-zinc-200 mb-2">4. Secure Access</h3>
+                <p>Access to your account is protected by JWT (JSON Web Tokens). Ensure you use a strong, unique password for your account security.</p>
+              </section>
+            </div>
+
+            <div className="mt-8 pt-6 border-t border-zinc-100 dark:border-zinc-800">
+              <button
+                onClick={() => setActiveModal(null)}
+                className="w-full py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700"
+              >
+                I Understand
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Footer Info */}
       <div className="mt-12 text-center">
