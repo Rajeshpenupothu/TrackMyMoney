@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import api from "../api/api";
 
 const MONTHS = [
-  "January","February","March","April","May","June",
-  "July","August","September","October","November","December",
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
 ];
 
 function Borrowings({ borrowings, setBorrowings }) {
@@ -35,10 +35,19 @@ function Borrowings({ borrowings, setBorrowings }) {
       const loadBorrowings = async () => {
         try {
           const res = await api.get("/borrowings");
-          setBorrowings(res.data.map(b => ({
-            ...b,
-            dueDateObj: new Date(b.dueDate),
-          })));
+          setBorrowings(res.data.map(b => {
+            // Use T00:00:00 to avoid timezone shift on new Date()
+            const bd = new Date(b.borrowDate + "T00:00:00");
+            const dd = new Date(b.dueDate + "T00:00:00");
+            return {
+              ...b,
+              year: bd.getFullYear(),
+              month: bd.toLocaleString("default", { month: "long" }),
+              day: bd.getDate(),
+              dueDay: dd.getDate(),
+              dueDateObj: dd,
+            };
+          }));
         } catch (error) {
           console.error("Failed to load borrowings:", error);
         }
@@ -47,7 +56,7 @@ function Borrowings({ borrowings, setBorrowings }) {
     }
   }, []);
 
- /* ===== SAVE / UPDATE ===== */
+  /* ===== SAVE / UPDATE ===== */
   const saveBorrowing = async (e) => {
     e.preventDefault();
     setError("");
@@ -58,7 +67,7 @@ function Borrowings({ borrowings, setBorrowings }) {
     }
 
     const monthIndex = MONTHS.indexOf(month);
-    
+
     // Create Date objects (Local Time)
     const borrowDateObj = new Date(year, monthIndex, Number(day));
     const dueDateObj = new Date(year, monthIndex, Number(dueDay));
@@ -66,10 +75,10 @@ function Borrowings({ borrowings, setBorrowings }) {
     // FIX: Manually format to YYYY-MM-DD to avoid Timezone shift
     // This ensures Feb 1st stays Feb 1st
     const formatDate = (d) => {
-        const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        return `${y}-${m}-${day}`;
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
     };
 
     try {
@@ -85,15 +94,15 @@ function Borrowings({ borrowings, setBorrowings }) {
           borrowings.map((b) =>
             b.id === editingId
               ? {
-                  ...b,
-                  name,
-                  amount: Number(amount),
-                  year,
-                  month,
-                  day: Number(day),
-                  dueDay: Number(dueDay),
-                  settled: res.data.settled,
-                }
+                ...b,
+                name,
+                amount: Number(amount),
+                year,
+                month,
+                day: Number(day),
+                dueDay: Number(dueDay),
+                settled: res.data.settled,
+              }
               : b
           )
         );
@@ -166,124 +175,124 @@ function Borrowings({ borrowings, setBorrowings }) {
     );
 
   return (
-  <div className="text-zinc-800 dark:text-zinc-100">
-    <h1 className="text-2xl font-semibold mb-4">Borrowings</h1>
-    <div className="flex gap-8 items-start">
+    <div className="text-zinc-800 dark:text-zinc-100">
+      <h1 className="text-2xl font-semibold mb-4">Borrowings</h1>
+      <div className="flex gap-8 items-start">
 
 
-    {/* FORM */}
-    <form onSubmit={saveBorrowing} className="card p-6 w-1/2 h-fit">
+        {/* FORM */}
+        <form onSubmit={saveBorrowing} className="card p-6 w-1/2 h-fit">
 
-  {error && <p className="text-red-600 text-sm mb-3">{error}</p>}
+          {error && <p className="text-red-600 text-sm mb-3">{error}</p>}
 
-  <input
-    placeholder="Borrowed from"
-    value={name}
-    onChange={(e) => setName(e.target.value)}
-    className="input mb-3"
-  />
+          <input
+            placeholder="Borrowed from"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="input mb-3"
+          />
 
-  <input
-    type="number"
-    placeholder="Amount (₹)"
-    value={amount}
-    onChange={(e) => setAmount(e.target.value)}
-    className="input mb-3"
-  />
+          <input
+            type="number"
+            placeholder="Amount (₹)"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            className="input mb-3"
+          />
 
-  <div className="grid grid-cols-4 gap-3 mb-4">
-    <select value={year} onChange={(e)=>setYear(Number(e.target.value))} className="input">
-      {[2024,2025,2026].map(y=> <option key={y}>{y}</option>)}
-    </select>
+          <div className="grid grid-cols-4 gap-3 mb-4">
+            <select value={year} onChange={(e) => setYear(Number(e.target.value))} className="input">
+              {[2024, 2025, 2026].map(y => <option key={y}>{y}</option>)}
+            </select>
 
-    <select value={month} onChange={(e)=>setMonth(e.target.value)} className="input">
-      {MONTHS.map(m=> <option key={m}>{m}</option>)}
-    </select>
+            <select value={month} onChange={(e) => setMonth(e.target.value)} className="input">
+              {MONTHS.map(m => <option key={m}>{m}</option>)}
+            </select>
 
-    <input placeholder="Day" value={day} onChange={(e)=>setDay(e.target.value)} className="input" />
-    <input placeholder="Due" value={dueDay} onChange={(e)=>setDueDay(e.target.value)} className="input" />
-  </div>
-  <button className="btn block w-full mt-3">
-    {editingId ? "Update Borrowing" : "Add Borrowing"}
-  </button>
+            <input placeholder="Day" value={day} onChange={(e) => setDay(e.target.value)} className="input" />
+            <input placeholder="Due" value={dueDay} onChange={(e) => setDueDay(e.target.value)} className="input" />
+          </div>
+          <button className="btn block w-full mt-3">
+            {editingId ? "Update Borrowing" : "Add Borrowing"}
+          </button>
 
 
-</form>
+        </form>
 
-    {/* LIST */}
-    <div className="card p-6 w-1/2 max-h-[600px] overflow-y-auto">
-      <div className="border-b pb-4 mb-4 space-y-3">
-        <h2 className="font-semibold">Borrowing List</h2>
+        {/* LIST */}
+        <div className="card p-6 w-1/2 max-h-[600px] overflow-y-auto">
+          <div className="border-b pb-4 mb-4 space-y-3">
+            <h2 className="font-semibold">Borrowing List</h2>
 
-        <input
-          type="text"
-          placeholder="Search in this list..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="input"
-        />
+            <input
+              type="text"
+              placeholder="Search in this list..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="input"
+            />
 
-        <div className="flex gap-3">
-          <select
-            value={selectedYear}
-            onChange={(e) => setSelectedYear(Number(e.target.value))}
-            className="input"
+            <div className="flex gap-3">
+              <select
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(Number(e.target.value))}
+                className="input"
 
-          >
-            {[2024, 2025, 2026].map((y) => (
-              <option key={y}>{y}</option>
-            ))}
-          </select>
+              >
+                {[2024, 2025, 2026].map((y) => (
+                  <option key={y}>{y}</option>
+                ))}
+              </select>
 
-          <select
-            value={selectedMonth}
-            onChange={(e) => setSelectedMonth(e.target.value)}
-            className="input"
+              <select
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(e.target.value)}
+                className="input"
 
-          >
-            {MONTHS.map((m) => (
-              <option key={m}>{m}</option>
-            ))}
-          </select>
+              >
+                {MONTHS.map((m) => (
+                  <option key={m}>{m}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="p-4 border-t dark:border-zinc-700">
+            {filtered.length === 0 ? (
+              <p className="text-sm opacity-60">No active borrowings</p>
+            ) : (
+              <>
+                <h3 className="text-sm font-semibold mb-3">
+                  {selectedYear} {selectedMonth}
+                </h3>
+
+                {filtered.map((b) => (
+                  <div
+                    key={b.id}
+                    className="flex justify-between items-center border rounded p-3 mb-2 hover:shadow-md transition"
+                  >
+                    <div>
+                      <p className="font-medium">{b.name}</p>
+                      <p className="text-xs opacity-60">
+                        Day {b.day} · Due {b.dueDay}
+                      </p>
+                    </div>
+
+                    <div className="flex gap-2 items-center">
+                      <span className="font-semibold">₹{b.amount}</span>
+                      <button onClick={() => markSettled(b.id)} className="text-green-600 text-xs border px-2 rounded">Settled</button>
+                      <button onClick={() => startEdit(b)} className="text-blue-600 text-xs border px-2 rounded">Edit</button>
+                      <button onClick={() => deleteBorrowing(b.id)} className="text-red-600 text-xs border px-2 rounded">Delete</button>
+                    </div>
+                  </div>
+                ))}
+              </>
+            )}
+          </div>
         </div>
       </div>
-
-      <div className="p-4 border-t dark:border-zinc-700">
-        {filtered.length === 0 ? (
-          <p className="text-sm opacity-60">No active borrowings</p>
-        ) : (
-          <>
-            <h3 className="text-sm font-semibold mb-3">
-              {selectedYear} {selectedMonth}
-            </h3>
-
-            {filtered.map((b) => (
-              <div
-                key={b.id}
-                className="flex justify-between items-center border rounded p-3 mb-2 hover:shadow-md transition"
-              >
-                <div>
-                  <p className="font-medium">{b.name}</p>
-                  <p className="text-xs opacity-60">
-                    Day {b.day} · Due {b.dueDay}
-                  </p>
-                </div>
-
-                <div className="flex gap-2 items-center">
-                  <span className="font-semibold">₹{b.amount}</span>
-                  <button onClick={() => markSettled(b.id)} className="text-green-600 text-xs border px-2 rounded">Settled</button>
-                  <button onClick={() => startEdit(b)} className="text-blue-600 text-xs border px-2 rounded">Edit</button>
-                  <button onClick={() => deleteBorrowing(b.id)} className="text-red-600 text-xs border px-2 rounded">Delete</button>
-                </div>
-              </div>
-            ))}
-          </>
-        )}
-      </div>
     </div>
-  </div>
-  </div>
-);
+  );
 
 
 }

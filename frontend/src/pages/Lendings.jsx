@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import api from "../api/api";
 
 const MONTHS = [
-  "January","February","March","April","May","June",
-  "July","August","September","October","November","December",
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
 ];
 
 function Lendings({ lendings, setLendings }) {
@@ -34,10 +34,19 @@ function Lendings({ lendings, setLendings }) {
       const loadLendings = async () => {
         try {
           const res = await api.get("/lendings");
-          setLendings(res.data.map(l => ({
-            ...l,
-            dueDateObj: new Date(l.dueDate),
-          })));
+          setLendings(res.data.map(l => {
+            const ld = new Date(l.lendDate + "T00:00:00");
+            const dd = new Date(l.dueDate + "T00:00:00");
+            return {
+              ...l,
+              year: ld.getFullYear(),
+              month: ld.toLocaleString("default", { month: "long" }),
+              day: ld.getDate(),
+              dueDay: dd.getDate(),
+              lendDateObj: ld,
+              dueDateObj: dd,
+            };
+          }));
         } catch (error) {
           console.error("Failed to load lendings:", error);
         }
@@ -73,16 +82,16 @@ function Lendings({ lendings, setLendings }) {
           lendings.map((l) =>
             l.id === editingId
               ? {
-                  ...l,
-                  name,
-                  amount: Number(amount),
-                  year,
-                  month,
-                  day: Number(day),
-                  dueDay: Number(dueDay),
-                  lendDateObj: lendDate,
-                  dueDateObj: dueDate,
-                }
+                ...l,
+                name,
+                amount: Number(amount),
+                year,
+                month,
+                day: Number(day),
+                dueDay: Number(dueDay),
+                lendDateObj: lendDate,
+                dueDateObj: dueDate,
+              }
               : l
           )
         );
@@ -146,155 +155,157 @@ function Lendings({ lendings, setLendings }) {
   };
 
   const filtered = lendings.filter((l) =>
+    l.year === selectedYear &&
+    l.month === selectedMonth &&
     l.name.toLowerCase().includes(search.toLowerCase())
   );
 
- return (
-  <div className="text-zinc-800 dark:text-zinc-100">
-    <h1 className="text-2xl font-semibold mb-4">Lendings</h1>
+  return (
+    <div className="text-zinc-800 dark:text-zinc-100">
+      <h1 className="text-2xl font-semibold mb-4">Lendings</h1>
 
-    <div className="flex gap-8 items-start">
+      <div className="flex gap-8 items-start">
 
-      {/* LEFT — FORM */}
-      <form onSubmit={saveLending} className="card p-6 w-1/2 h-fit">
-        {error && <p className="text-red-600 text-sm mb-3">{error}</p>}
-
-        <input
-          placeholder="Lent to"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="input mb-3"
-        />
-
-        <input
-          type="number"
-          placeholder="Amount (₹)"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          className="input mb-3"
-        />
-
-        <div className="grid grid-cols-4 gap-3 mb-4">
-          <select value={year} onChange={(e)=>setYear(Number(e.target.value))} className="input">
-            {[2024,2025,2026].map(y=> <option key={y}>{y}</option>)}
-          </select>
-
-          <select value={month} onChange={(e)=>setMonth(e.target.value)} className="input">
-            {MONTHS.map(m=> <option key={m}>{m}</option>)}
-          </select>
+        {/* LEFT — FORM */}
+        <form onSubmit={saveLending} className="card p-6 w-1/2 h-fit">
+          {error && <p className="text-red-600 text-sm mb-3">{error}</p>}
 
           <input
-            placeholder="Day"
-            value={day}
-            onChange={(e)=>setDay(e.target.value)}
-            className="input"
+            placeholder="Lent to"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="input mb-3"
           />
 
           <input
-            placeholder="Due"
-            value={dueDay}
-            onChange={(e)=>setDueDay(e.target.value)}
-            className="input"
-          />
-        </div>
-
-        <button className="btn block w-full mt-3">
-          {editingId ? "Update Lending" : "Add Lending"}
-        </button>
-      </form>
-
-
-      {/* RIGHT — LIST */}
-      <div  className="card p-6 w-1/2 max-h-[600px] overflow-y-auto">
-        <div className="border-b pb-4 mb-4 space-y-3">
-          <h2 className="font-semibold">Lending List</h2>
-
-          <input
-            type="text"
-            placeholder="Search in this list..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="input"
+            type="number"
+            placeholder="Amount (₹)"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            className="input mb-3"
           />
 
-          <div className="flex gap-3">
-            <select
-              value={selectedYear}
-              onChange={(e) => setSelectedYear(Number(e.target.value))}
-              className="input"
-            >
-              {[2024, 2025, 2026].map((y) => (
-                <option key={y}>{y}</option>
-              ))}
+          <div className="grid grid-cols-4 gap-3 mb-4">
+            <select value={year} onChange={(e) => setYear(Number(e.target.value))} className="input">
+              {[2024, 2025, 2026].map(y => <option key={y}>{y}</option>)}
             </select>
 
-            <select
-              value={selectedMonth}
-              onChange={(e) => setSelectedMonth(e.target.value)}
-              className="input"
-            >
-              {MONTHS.map((m) => (
-                <option key={m}>{m}</option>
-              ))}
+            <select value={month} onChange={(e) => setMonth(e.target.value)} className="input">
+              {MONTHS.map(m => <option key={m}>{m}</option>)}
             </select>
+
+            <input
+              placeholder="Day"
+              value={day}
+              onChange={(e) => setDay(e.target.value)}
+              className="input"
+            />
+
+            <input
+              placeholder="Due"
+              value={dueDay}
+              onChange={(e) => setDueDay(e.target.value)}
+              className="input"
+            />
+          </div>
+
+          <button className="btn block w-full mt-3">
+            {editingId ? "Update Lending" : "Add Lending"}
+          </button>
+        </form>
+
+
+        {/* RIGHT — LIST */}
+        <div className="card p-6 w-1/2 max-h-[600px] overflow-y-auto">
+          <div className="border-b pb-4 mb-4 space-y-3">
+            <h2 className="font-semibold">Lending List</h2>
+
+            <input
+              type="text"
+              placeholder="Search in this list..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="input"
+            />
+
+            <div className="flex gap-3">
+              <select
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(Number(e.target.value))}
+                className="input"
+              >
+                {[2024, 2025, 2026].map((y) => (
+                  <option key={y}>{y}</option>
+                ))}
+              </select>
+
+              <select
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(e.target.value)}
+                className="input"
+              >
+                {MONTHS.map((m) => (
+                  <option key={m}>{m}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div>
+            {filtered.length === 0 ? (
+              <p className="text-sm opacity-60">No active lendings</p>
+            ) : (
+              <>
+                <h3 className="text-sm font-semibold mb-3">
+                  {selectedYear} {selectedMonth}
+                </h3>
+
+                {filtered.map((l) => (
+                  <div
+                    key={l.id}
+                    className="flex justify-between items-center border rounded p-3 mb-2 hover:shadow-md transition"
+                  >
+                    <div>
+                      <p className="font-medium">{l.name}</p>
+                      <p className="text-xs opacity-60">
+                        {l.month} {l.day} · Due {l.dueDay}
+                      </p>
+                    </div>
+
+                    <div className="flex gap-2 items-center">
+                      <span className="font-semibold">₹{l.amount}</span>
+
+                      <button
+                        onClick={() => markSettled(l.id)}
+                        className="text-green-600 text-xs border px-2 rounded"
+                      >
+                        Settled
+                      </button>
+
+                      <button
+                        onClick={() => startEdit(l)}
+                        className="text-blue-600 text-xs border px-2 rounded"
+                      >
+                        Edit
+                      </button>
+
+                      <button
+                        onClick={() => deleteLending(l.id)}
+                        className="text-red-600 text-xs border px-2 rounded"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </>
+            )}
           </div>
         </div>
 
-        <div>
-          {filtered.length === 0 ? (
-            <p className="text-sm opacity-60">No active lendings</p>
-          ) : (
-            <>
-              <h3 className="text-sm font-semibold mb-3">
-                {selectedYear} {selectedMonth}
-              </h3>
-
-              {filtered.map((l) => (
-                <div
-                  key={l.id}
-                  className="flex justify-between items-center border rounded p-3 mb-2 hover:shadow-md transition"
-                >
-                  <div>
-                    <p className="font-medium">{l.name}</p>
-                    <p className="text-xs opacity-60">
-                      {l.month} {l.day} · Due {l.dueDay}
-                    </p>
-                  </div>
-
-                  <div className="flex gap-2 items-center">
-                    <span className="font-semibold">₹{l.amount}</span>
-
-                    <button
-                      onClick={() => markSettled(l.id)}
-                      className="text-green-600 text-xs border px-2 rounded"
-                    >
-                      Settled
-                    </button>
-
-                    <button
-                      onClick={() => startEdit(l)}
-                      className="text-blue-600 text-xs border px-2 rounded"
-                    >
-                      Edit
-                    </button>
-
-                    <button
-                      onClick={() => deleteLending(l.id)}
-                      className="text-red-600 text-xs border px-2 rounded"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </>
-          )}
-        </div>
       </div>
-
     </div>
-  </div>
-);
+  );
 
 
 }
