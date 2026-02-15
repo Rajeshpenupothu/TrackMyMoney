@@ -66,8 +66,30 @@ function Login() {
     }
   };
 
+  const handleDemoLogin = async () => {
+    setError("");
+    setSuccess("");
+    const ok = await login("demo@gmail.com", "demo123");
+    if (!ok) {
+      setError("Demo login failed. Please contact the administrator.");
+    }
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4 relative">
+      {/* Demo Button at top-right */}
+      <div className="absolute top-6 right-6">
+        <button
+          onClick={handleDemoLogin}
+          disabled={isLoading}
+          className="bg-indigo-600 text-white px-6 py-2 rounded-full font-bold shadow-lg 
+                     hover:bg-indigo-700 transition-all transform hover:scale-105
+                     disabled:bg-indigo-400 disabled:cursor-not-allowed"
+        >
+          {isLoading ? "Wait..." : "Demo"}
+        </button>
+      </div>
+
       <div className="bg-white w-full max-w-md p-8 rounded-xl shadow-lg">
         <form
           onSubmit={isRegisterMode ? handleRegister : handleLogin}
@@ -181,7 +203,7 @@ function Login() {
             </div>
           )}
 
-          <button 
+          <button
             type="submit"
             disabled={isLoading}
             className="w-full bg-indigo-600 text-white py-2 rounded-full font-semibold hover:bg-indigo-700 transition disabled:bg-indigo-400 disabled:cursor-not-allowed"

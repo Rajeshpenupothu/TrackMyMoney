@@ -15,3 +15,7 @@ backend/target/
 build_log*.txt
 
 # End of https://www.toptal.com/developers/gitignore/api/maven
+
+# Application properties
+application.properties
+application-local.properties
