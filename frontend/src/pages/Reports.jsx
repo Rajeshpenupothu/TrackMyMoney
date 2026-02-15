@@ -28,6 +28,7 @@ function Reports({ incomes, expenses, borrowings, lendings, loading }) {
     today.toLocaleString("default", { month: "long" })
   );
   const [showDownloads, setShowDownloads] = useState(false);
+  const [activeCategory, setActiveCategory] = useState(null); // 'expenses' or 'income'
 
   // Show loading state
   if (loading) {
@@ -256,96 +257,109 @@ function Reports({ incomes, expenses, borrowings, lendings, loading }) {
         </button>
 
         {showDownloads && (
-          <div className="mt-4 max-w-md space-y-4">
-
+          <div className="mt-4 max-w-md space-y-3">
+            {/* Primary Reports (Single Format) */}
             <button
               onClick={downloadFinanceReport}
               className="w-full flex items-center gap-3 p-3 rounded-lg
-           bg-zinc-800 border border-zinc-700
-           hover:bg-zinc-700 hover:border-zinc-500
-           transition-all duration-300 hover:shadow-md hover:-translate-y-0.5"
-
+                         bg-zinc-800 border border-zinc-700
+                         hover:bg-zinc-700 hover:border-zinc-500
+                         transition-all duration-300"
             >
-              <span className="text-2xl">📊</span>
+              <span className="text-xl">📊</span>
               <div className="text-left">
                 <p className="font-medium text-white text-sm">Finance Report</p>
                 <p className="text-[11px] text-zinc-400">Summary of income, expenses, borrow & lend</p>
               </div>
             </button>
 
-            <button
-              onClick={downloadExpenseReport}
-              className="w-full flex items-center gap-3 p-3 rounded-lg
-           bg-zinc-800 border border-zinc-700
-           hover:bg-zinc-700 hover:border-zinc-500
-           transition-all duration-300 hover:shadow-md hover:-translate-y-0.5"
+            {/* Grouped Expense Reports */}
+            <div className="space-y-2">
+              <button
+                onClick={() => setActiveCategory(activeCategory === 'expenses' ? null : 'expenses')}
+                className={`w-full flex items-center justify-between p-3 rounded-lg border transition-all duration-300
+                            ${activeCategory === 'expenses' ? 'bg-zinc-700 border-indigo-500' : 'bg-zinc-800 border-zinc-700 hover:bg-zinc-700'}`}
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-xl">🧾</span>
+                  <div className="text-left">
+                    <p className="font-medium text-white text-sm">Expense Report</p>
+                    <p className="text-[11px] text-zinc-400">PDF and CSV formats available</p>
+                  </div>
+                </div>
+                <span className={`transition-transform duration-300 ${activeCategory === 'expenses' ? 'rotate-180' : ''}`}>▼</span>
+              </button>
 
-            >
-              <span className="text-2xl">🧾</span>
-              <div className="text-left">
-                <p className="font-medium text-white text-sm">Expense Report (PDF)</p>
-                <p className="text-[11px] text-zinc-400">Detailed monthly expense list</p>
-              </div>
-            </button>
+              {activeCategory === 'expenses' && (
+                <div className="grid grid-cols-2 gap-2 pl-4">
+                  <button
+                    onClick={downloadExpenseReport}
+                    className="flex flex-col items-center p-2 rounded-lg bg-zinc-800 border border-zinc-700 hover:bg-zinc-700 transition"
+                  >
+                    <span className="text-lg">📄</span>
+                    <span className="text-[10px] text-white">Download PDF</span>
+                  </button>
+                  <button
+                    onClick={downloadExpensesCsv}
+                    className="flex flex-col items-center p-2 rounded-lg bg-zinc-800 border border-zinc-700 hover:bg-zinc-700 transition"
+                  >
+                    <span className="text-lg">📊</span>
+                    <span className="text-[10px] text-white">Download CSV</span>
+                  </button>
+                </div>
+              )}
+            </div>
 
-            <button
-              onClick={downloadExpensesCsv}
-              className="w-full flex items-center gap-3 p-3 rounded-lg
-           bg-zinc-800 border border-zinc-700
-           hover:bg-zinc-700 hover:border-zinc-500
-           transition-all duration-300 hover:shadow-md hover:-translate-y-0.5"
-            >
-              <span className="text-2xl">📄</span>
-              <div className="text-left">
-                <p className="font-medium text-white text-sm">Export Expenses (CSV)</p>
-                <p className="text-[11px] text-zinc-400">Raw data for Excel</p>
-              </div>
-            </button>
+            {/* Grouped Income Reports */}
+            <div className="space-y-2">
+              <button
+                onClick={() => setActiveCategory(activeCategory === 'income' ? null : 'income')}
+                className={`w-full flex items-center justify-between p-3 rounded-lg border transition-all duration-300
+                            ${activeCategory === 'income' ? 'bg-zinc-700 border-indigo-500' : 'bg-zinc-800 border-zinc-700 hover:bg-zinc-700'}`}
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-xl">💰</span>
+                  <div className="text-left">
+                    <p className="font-medium text-white text-sm">Income Report</p>
+                    <p className="text-[11px] text-zinc-400">PDF and CSV formats available</p>
+                  </div>
+                </div>
+                <span className={`transition-transform duration-300 ${activeCategory === 'income' ? 'rotate-180' : ''}`}>▼</span>
+              </button>
 
-            <button
-              onClick={downloadIncomeReport}
-              className="w-full flex items-center gap-3 p-3 rounded-lg
-           bg-zinc-800 border border-zinc-700
-           hover:bg-zinc-700 hover:border-zinc-500
-           transition-all duration-300 hover:shadow-md hover:-translate-y-0.5"
-
-            >
-              <span className="text-2xl">💰</span>
-              <div className="text-left">
-                <p className="font-medium text-white text-sm">Income Report (PDF)</p>
-                <p className="text-[11px] text-zinc-400">Monthly income breakdown</p>
-              </div>
-            </button>
-
-            <button
-              onClick={downloadIncomeCsv}
-              className="w-full flex items-center gap-3 p-3 rounded-lg
-           bg-zinc-800 border border-zinc-700
-           hover:bg-zinc-700 hover:border-zinc-500
-           transition-all duration-300 hover:shadow-md hover:-translate-y-0.5"
-            >
-              <span className="text-2xl">📄</span>
-              <div className="text-left">
-                <p className="font-medium text-white text-sm">Export Income (CSV)</p>
-                <p className="text-[11px] text-zinc-400">Raw data for Excel</p>
-              </div>
-            </button>
+              {activeCategory === 'income' && (
+                <div className="grid grid-cols-2 gap-2 pl-4">
+                  <button
+                    onClick={downloadIncomeReport}
+                    className="flex flex-col items-center p-2 rounded-lg bg-zinc-800 border border-zinc-700 hover:bg-zinc-700 transition"
+                  >
+                    <span className="text-lg">📄</span>
+                    <span className="text-[10px] text-white">Download PDF</span>
+                  </button>
+                  <button
+                    onClick={downloadIncomeCsv}
+                    className="flex flex-col items-center p-2 rounded-lg bg-zinc-800 border border-zinc-700 hover:bg-zinc-700 transition"
+                  >
+                    <span className="text-lg">📊</span>
+                    <span className="text-[10px] text-white">Download CSV</span>
+                  </button>
+                </div>
+              )}
+            </div>
 
             <button
               onClick={downloadBorrowLendReport}
               className="w-full flex items-center gap-3 p-3 rounded-lg
-           bg-zinc-800 border border-zinc-700
-           hover:bg-zinc-700 hover:border-zinc-500
-           transition-all duration-300 hover:shadow-md hover:-translate-y-0.5"
-
+                         bg-zinc-800 border border-zinc-700
+                         hover:bg-zinc-700 hover:border-zinc-500
+                         transition-all duration-300"
             >
-              <span className="text-2xl">🤝</span>
+              <span className="text-xl">🤝</span>
               <div className="text-left">
                 <p className="font-medium text-white text-sm">Borrow / Lend Report</p>
                 <p className="text-[11px] text-zinc-400">All borrowings and lendings status</p>
               </div>
             </button>
-
           </div>
         )}
 
