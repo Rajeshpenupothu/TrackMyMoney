@@ -183,6 +183,10 @@ function App() {
               selectedMonth={selectedMonth}
               setSelectedYear={setSelectedYear}
               setSelectedMonth={setSelectedMonth}
+              incomes={incomes}
+              expenses={expenses}
+              borrowings={borrowings}
+              lendings={lendings}
             />
           )}
 

@@ -11,39 +11,55 @@ function Home({
   selectedMonth,
   setSelectedYear,
   setSelectedMonth,
+  incomes,
+  expenses,
+  borrowings,
+  lendings,
 }) {
   const [summary, setSummary] = useState({
     totalIncome: 0,
     totalExpense: 0,
-    savings: 0,
     totalBorrowed: 0,
     totalLent: 0,
-    unsettledAmount: 0,
     overdueBorrowed: 0,
     overdueLent: 0
   });
-  const [fetching, setFetching] = useState(false); // background fetch when switching month/year
 
-  // 🔥 This useEffect replaces the old manual .filter() and .reduce() logic
   useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        setFetching(true);
+    // Calculate totals locally for the selected month/year
+    const mIncome = incomes
+      .filter(i => i.year === selectedYear && i.month === selectedMonth)
+      .reduce((s, i) => s + i.amount, 0);
 
-        // We call the single aggregated endpoint with filters
-        const response = await api.get("/summary", {
-          params: { year: selectedYear, month: selectedMonth }
-        });
-        setSummary(response.data);
-      } catch (error) {
-        console.error("Dashboard fetch error:", error);
-      } finally {
-        setFetching(false);
-      }
-    };
+    const mExpense = expenses
+      .filter(e => e.year === selectedYear && e.month === selectedMonth)
+      .reduce((s, e) => s + e.amount, 0);
 
-    fetchDashboardData();
-  }, [selectedYear, selectedMonth]); // Re-runs when you change month/year filters
+    const mBorrowed = borrowings
+      .filter(b => b.year === selectedYear && b.month === selectedMonth)
+      .reduce((s, b) => s + b.amount, 0);
+
+    const mLent = lendings
+      .filter(l => l.year === selectedYear && l.month === selectedMonth)
+      .reduce((s, l) => s + l.amount, 0);
+
+    const overdueB = borrowings
+      .filter(b => !b.settled && b.dueDateObj && b.dueDateObj < new Date())
+      .reduce((s, b) => s + b.amount, 0);
+
+    const overdueL = lendings
+      .filter(l => !l.settled && l.dueDateObj && l.dueDateObj < new Date())
+      .reduce((s, l) => s + l.amount, 0);
+
+    setSummary({
+      totalIncome: mIncome,
+      totalExpense: mExpense,
+      totalBorrowed: mBorrowed,
+      totalLent: mLent,
+      overdueBorrowed: overdueB,
+      overdueLent: overdueL
+    });
+  }, [selectedYear, selectedMonth, incomes, expenses, borrowings, lendings]);
 
   const availableBalance =
     summary.totalIncome - summary.totalExpense - summary.totalBorrowed + summary.totalLent;
@@ -77,10 +93,10 @@ function Home({
 
       {/* Cards using summary data */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-7 mb-6">
-        <Card title="Total Income" value={summary.totalIncome} fetching={fetching} />
-        <Card title="Total Expenses" value={summary.totalExpense} fetching={fetching} />
-        <Card title="Total Borrowed" value={summary.totalBorrowed} fetching={fetching} />
-        <Card title="Total Lent" value={summary.totalLent} fetching={fetching} />
+        <Card title="Total Income" value={summary.totalIncome} />
+        <Card title="Total Expenses" value={summary.totalExpense} />
+        <Card title="Total Borrowed" value={summary.totalBorrowed} />
+        <Card title="Total Lent" value={summary.totalLent} />
       </div>
 
       {/* Overdue borrowed / lent - conditionally rendered */}
@@ -120,15 +136,11 @@ function Home({
 }
 
 // Keep your Card component as it is
-function Card({ title, value, fetching }) {
+function Card({ title, value }) {
   return (
     <div className="card p-7">
       <h2 className="text-sm text-gray-600 dark:text-gray-200">{title}</h2>
-      {fetching ? (
-        <div className="mt-3 h-6 w-28 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
-      ) : (
-        <p className="text-2xl font-semibold mt-3 text-black dark:text-white">₹{value}</p>
-      )}
+      <p className="text-2xl font-semibold mt-3 text-black dark:text-white">₹{value}</p>
     </div>
   );
 }
