@@ -113,11 +113,6 @@ function Settings() {
 
       </div>
 
-      {/* FOOTER TIP */}
-      <div className="mt-8 p-4 rounded-xl border border-dashed border-zinc-300 dark:border-zinc-700 flex items-center gap-3 opacity-60">
-        <Rocket size={18} className="text-indigo-500" />
-        <p className="text-xs italic">Tip: You can now toggle Dark/Light mode instantly from the Sidebar header!</p>
-      </div>
     </div>
   );
 }

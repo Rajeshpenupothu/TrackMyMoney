@@ -98,6 +98,19 @@ function Home({
         </div>
       )}
 
+      {/* Budget Alert - Conditionally rendered */}
+      {JSON.parse(localStorage.getItem("budgetAlerts") ?? "false") &&
+        summary.totalIncome > 0 &&
+        (summary.totalExpense / summary.totalIncome) > 0.9 && (
+          <div className="p-4 bg-red-100 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-xl flex items-center gap-3 text-red-700 dark:text-red-400 mb-6 animate-pulse">
+            <span className="text-xl">⚠️</span>
+            <div>
+              <p className="font-bold text-sm">Budget Warning!</p>
+              <p className="text-xs">Your expenses have exceeded 90% of your monthly income.</p>
+            </div>
+          </div>
+        )}
+
       <div className="card p-6 mb-8">
         <h2 className="text-sm text-gray-600 dark:text-gray-200">Available Balance</h2>
         <p className="text-3xl font-semibold mt-3 text-black dark:text-white">₹{availableBalance}</p>
