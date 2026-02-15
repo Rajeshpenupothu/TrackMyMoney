@@ -138,24 +138,26 @@ function App() {
       {/* Sidebar - Responsive Drawer on Mobile */}
       <div className={`
         fixed inset-0 z-50 lg:relative lg:flex lg:translate-x-0 transition-transform duration-300
-        ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
+        ${isSidebarOpen ? "translate-x-0 pointer-events-auto" : "-translate-x-full pointer-events-none lg:pointer-events-auto"}
       `}>
         {/* Overlay for mobile */}
         <div
-          className="absolute inset-0 bg-black/50 lg:hidden"
+          className={`absolute inset-0 bg-black/50 lg:hidden transition-opacity duration-300 ${isSidebarOpen ? "opacity-100" : "opacity-0"}`}
           onClick={() => setIsSidebarOpen(false)}
         ></div>
 
-        <Sidebar
-          active={activePage}
-          setActive={(page) => {
-            setActivePage(page);
-            setIsSidebarOpen(false); // Close drawer on selection
-          }}
-          dark={dark}
-          setDark={setDark}
-          onClose={() => setIsSidebarOpen(false)}
-        />
+        <div className="relative z-50 h-full">
+          <Sidebar
+            active={activePage}
+            setActive={(page) => {
+              setActivePage(page);
+              setIsSidebarOpen(false); // Close drawer on selection
+            }}
+            dark={dark}
+            setDark={setDark}
+            onClose={() => setIsSidebarOpen(false)}
+          />
+        </div>
       </div>
 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
