@@ -16,7 +16,9 @@
 /* ===================== */
 /* PAGE BACKGROUND      */
 /* ===================== */
-html, body, #root {
+html,
+body,
+#root {
   @apply bg-gray-100 text-gray-900 dark:text-gray-200;
 }
 
@@ -24,7 +26,7 @@ html, body, #root {
 .dark html,
 .dark body,
 .dark #root {
-  background: #666666;
+  background: #09090B;
 }
 
 
@@ -35,12 +37,12 @@ html, body, #root {
   @apply rounded-2xl p-6 border;
   background: white;
   border-color: #E6E9EF;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .dark .card {
-  background: #3f3f3f;
-  border: 1px solid #6b6b6b;
+  background: #18181B;
+  border: 1px solid #27272A;
 }
 
 
@@ -59,13 +61,13 @@ html, body, #root {
 }
 
 .dark .input {
-  background: #3f3f3f;
+  background: #18181B;
   color: white;
-  border: 1px solid #6b6b6b;
+  border: 1px solid #27272A;
 }
 
 .dark .input:focus {
-  border-color: #a1a1aa;
+  border-color: #3f3f46;
 }
 
 
@@ -84,13 +86,13 @@ html, body, #root {
 }
 
 .dark .btn {
-  border: 1px solid #6b6b6b;
-  background: #575757;
+  border: 1px solid #27272A;
+  background: #27272A;
   color: white;
 }
 
 .dark .btn:hover {
-  background: #6a6a6a;
+  background: #3f3f46;
 }
 
 
